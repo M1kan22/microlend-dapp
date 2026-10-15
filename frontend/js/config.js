@@ -31,7 +31,7 @@
     chainName: 'Sepolia',
     contractAddress: '0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA',
     explorerBase: SEPOLIA_EXPLORER,
-    apiBase: '/api',
+    apiBase: 'https://microlend-dapp.onrender.com/api',
 
     /* --- runtime --- */
     rpcUrl: SEPOLIA_RPC,
@@ -201,8 +201,17 @@
     if (remote.explorerBase) patch.explorerBase = String(remote.explorerBase);
     if (remote.apiBase) {
       var base = String(remote.apiBase);
-      /* A backend that reports a relative base is useless to a file:// page. */
-      patch.apiBase = isFileProtocol() && base.charAt(0) === '/' ? LOCAL_API : base;
+      if (isFileProtocol() && base.charAt(0) === '/') {
+        /* A backend that reports a relative base is useless to a file:// page. */
+        patch.apiBase = LOCAL_API;
+      } else if (base.charAt(0) === '/' && CONFIG.apiBase && /^https?:\/\//i.test(String(CONFIG.apiBase))) {
+        /* Keep an explicit absolute base: the backend's relative "/api" only
+           resolves to the same origin as this page, which is not where the
+           backend lives when frontend and backend are deployed separately. */
+        patch.apiBase = CONFIG.apiBase;
+      } else {
+        patch.apiBase = base;
+      }
     }
     if (remote.rpcUrl) patch.rpcUrl = String(remote.rpcUrl);
     if (remote.abi || remote.contractAbi) {
