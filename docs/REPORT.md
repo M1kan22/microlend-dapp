@@ -105,17 +105,12 @@ without a wallet while chain mode remains the real thing.
 
 | Technology | Version / detail | Role and justification |
 |---|---|---|
-| Solidity | `^0.8.24` (compiled with 0.8.24) | checked arithmetic by default, custom errors, one self-contained file |
-| solc-js | `0.8.24+commit.e11b9ed9`, optimiser `runs: 200`, `evmVersion: shanghai` | compiles without a native toolchain; `shanghai` is deployable on Sepolia |
-| Ethereum Sepolia | `chainId 11155111` | assignment requirement; testnet removes real-money risk |
-| ethers.js | v6.17.0 (vendored for the browser, `.tooling/nm` for tests) | transaction building, ABI encoding, event decoding |
-| ganache | 7.9.2, in-process provider, `hardfork: shanghai` | deterministic EVM for tests: time travel (`evm_increaseTime`), snapshots, instant blocks |
-| Flask | Python 3.12 + Flask, JSON-only API | assignment §III/§V; small enough to read in one sitting |
-| SQLite | Python stdlib `sqlite3` | assignment §V optional database; zero-config, file-based, disposable |
-| Keccak-256 / secp256k1 | implemented in pure Python (`backend/keccak.py`, `backend/auth.py`) | signature verification and event-topic derivation with **no native dependencies**, so the marker can run the backend anywhere |
-| vanilla HTML/CSS/JS | no bundler, no framework | assignment §V; opens directly from the filesystem, nothing to install |
-| pytest | bundled under `.tooling/pylibs` | backend unit and API tests |
-| Pillow | 12.3.0 (bundled Python) | generates the diagrams in `docs/images/` programmatically (no screenshots are fabricated) |
+| Solidity 0.8.24 (`solc-js`, optimiser `runs: 200`, `evmVersion: shanghai`) | checked arithmetic by default, custom errors; compiles with no native toolchain and deploys to Sepolia |
+| Ethereum Sepolia (`chainId 11155111`) + `ethers.js` v6 | the assignment's target network; ethers handles transaction building, ABI encoding and event decoding in both tests and browser |
+| Flask (Python 3.12) + SQLite (`sqlite3`) | the backend and the optional database from assignment §V; JSON-only, zero-config, and the database is disposable because the chain is the source of truth |
+| Pure-Python Keccak-256 and secp256k1 (`backend/keccak.py`, `backend/auth.py`) | signature recovery and event-topic derivation with no native dependency, so the backend runs anywhere without `web3.py` or a C extension |
+| vanilla HTML/CSS/JS (no bundler, no framework) | assignment §V; the submission opens from the filesystem with nothing to install |
+| ganache 7.9.2 (in-process, `hardfork: shanghai`) + pytest + Pillow | deterministic EVM for the contract suite (time travel, instant blocks), backend unit/API tests, and programmatic generation of the diagrams in `docs/images/` |
 
 ## 6. Smart Contract Design
 
@@ -197,14 +192,10 @@ runs by opening a file. `frontend/js/demo.js` mirrors the contract arithmetic ag
 `localStorage` ledger, which is what makes the DApp fully demonstrable with no wallet and no
 testnet funds; a badge and a banner mark every demo surface so the two modes cannot be confused.
 
-| Panel | Purpose |
-|---|---|
-| Pool instrument | utilisation gauge, borrowed vs available, share price |
-| Supply / withdraw | deposit ETH, mint shares, redeem against free liquidity |
-| Open a loan | principal, rate, term and collateral with a live quote and validation |
-| Loan book | every loan with status, live amount due and the actions its state allows |
-| Position and history | the connected account's claims, plus the indexed transaction log |
-| Protocol parameters | owner-only parameter, pause and treasury controls, disabled for others |
+Six panels cover the whole protocol: a pool instrument (utilisation, borrowed vs available, share
+price), supply/withdraw, a loan form with a live quote and validation, the loan book with the
+actions each state allows, the connected account's position and the indexed history, and
+owner-only parameter controls that are disabled for everyone else.
 ### 7.1 Interface evidence
 
 The client runs in three modes — offline demo, local chain, Sepolia — with no build step. The
@@ -271,6 +262,48 @@ The client switches to this deployment with no file edit:
 frontend/index.html?contract=0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA
 ```
 
+### 8.2 Hosted deployment (Render)
+
+The submission is also deployed as a hosted demo so the marker can use the DApp without a wallet,
+a local toolchain or testnet funds. The source is public on GitHub and Render rebuilds both
+services on every push.
+
+| Component | URL | Notes |
+|---|---|---|
+| Source repository | <https://github.com/M1kan22/microlend-dapp> | 87 files, `.env` and generated files excluded by `.gitignore` |
+| Frontend (static site) | <https://microlend-dapp-1.onrender.com> | plain HTML/CSS/JS, no build step, publishes `frontend/` |
+| Backend (web service) | <https://microlend-dapp.onrender.com/api> | `pip install -r backend/requirements.txt`, `python backend/app.py` |
+| Health check | <https://microlend-dapp.onrender.com/api/health> | the service exposes no route at `/`, so Render's health path is set to `/api/health` |
+
+The backend runs `CHAIN_MODE=mock`, which is a deliberate choice rather than a limitation: the
+service then needs no external RPC endpoint and no testnet balance, and it seeds a complete demo
+book on first start (7 loans, 10 events, 13 transactions). Combined with client-side demo mode,
+the hosted build is fully usable the moment it is opened. **The real on-chain deployment described
+in §8.1 is independent of this and uses the same contract source.**
+
+Three problems had to be solved to make the hosted build work, and all three are instructive:
+
+| # | Symptom | Cause | Fix |
+|---|---|---|---|
+| 1 | the container could not be reached | Flask defaults to `host="127.0.0.1"` | set `HOST=0.0.0.0` in the environment |
+| 2 | Render marked the service unhealthy | the app exposes only `/api/*`, so a health check on `/` returned 404 | point the health check at `/api/health` |
+| 3 | cross-origin requests fell back to a relative path | `/api/config` returns `apiBase: "/api"`, which overwrote the client's absolute backend URL, so requests resolved against the static site instead of the API | pin the absolute URL in `frontend/js/config.js` |
+
+**Known inconsistency, stated rather than hidden.** The deployed client is configured with the
+real Sepolia address `0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA`, while the hosted backend reports its placeholder mock address and
+serves `demoMode: true`. That is why the marker sees the demo ledger rather than live chain data.
+Making the hosted build read the live chain is a configuration change, not a code change:
+
+```
+CHAIN_MODE=rpc
+RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
+MICROLEND_CONTRACT_ADDRESS=0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA
+```
+
+Two caveats belong with it: the free tier uses ephemeral storage, so the SQLite index is rebuilt
+on each restart (`AUTO_SEED=true` repopulates it), and `DEPLOYER_PRIVATE_KEY` must **never** be set
+on the host — the backend does not need a signing key by design.
+
 ## 9. Testing and Results
 
 Testing is layered so that a passing claim at one layer is not taken on trust by the next. All
@@ -286,14 +319,13 @@ matrix and the decoded custom-error table live in `docs/TESTING.md`.
 | Compile check | `node scripts/compile.js` | ABI 102 entries, source hash matches the pinned revision |
 
 **Contract suite.** Thirteen suites cover the twelve behavioural rules in
-`docs/INTEGRATION_SPEC.md` §2.7: deployment and the frozen interface, deposits and share maths,
-withdrawal (including that withdrawal stays available while new lending is paused), the full
-`requestLoan` revert matrix, pending-versus-active activation, `fundLoan`, repayment to the wei
-including both late-fee periods, both liquidation branches, cancellation, governance and access
-control, the pause matrix, the read helpers, a live re-entrancy attacker, and the money invariant
-after every scenario. Exactness is asserted rather than approximated: 1 ETH at 1 000 bps for 30
-days is 8 219 178 082 191 780 wei of interest, and a supplier's profit is `netInterest - 2 wei` of
-rounding dust.
+`docs/INTEGRATION_SPEC.md` §2.7 — deposits and share maths, withdrawal (still available while new
+lending is paused), the full `requestLoan` revert matrix, pending-versus-active activation,
+`fundLoan`, repayment to the wei including both late-fee periods, both liquidation branches,
+cancellation, governance and access control, the pause matrix, the read helpers, a live
+re-entrancy attacker, and the money invariant after every scenario. Exactness is asserted rather
+than approximated: 1 ETH at 1 000 bps for 30 days is 8 219 178 082 191 780 wei of interest, and a
+supplier's profit is `netInterest - 2 wei` of rounding dust.
 
 **Backend suite.** Every documented route is exercised on its happy path plus at least one
 invalid request, with authentication required, invalid, expired and revoked; per-field validation
@@ -301,15 +333,15 @@ errors; duplicate-hash conflicts; pagination; sender-mismatch rejection; and dec
 proved never to use binary floating point.
 
 **End-to-end run.** Against a real EVM over HTTP and a real Flask server, the run authenticated
-with `personal_sign`, fetched a real transaction receipt, decoded its `LiquidityDeposited` log,
-persisted it and read it back — and proved the negative cases: a write without a token is `401`,
-a transaction sent by a different wallet than the session is rejected, a replayed hash is `409`,
-and a submitted amount that disagrees with the chain is refused with both values quoted.
+with `personal_sign`, fetched a real receipt, decoded its `LiquidityDeposited` log, persisted it and
+read it back — and proved the negative cases: no token is `401`, a transaction sent by a different
+wallet than the session is rejected, a replayed hash is `409`, and a submitted amount that
+disagrees with the chain is refused with both values quoted.
 
-**Gas.** Deployment costs 12 471 bytes of creation code. A deposit, a loan request that activates
-in the same transaction, a repayment and a liquidation each stay comfortably inside a standard
-block, and the contract uses custom errors rather than revert strings specifically to keep failure
-paths cheap. Absolute gas figures are recorded in `docs/TESTING.md` §5.
+**Gas.** Deployment uses 12 471 bytes of creation code and 20 438 889 gas on Sepolia; a deposit,
+a loan that activates in the same transaction, a repayment and a liquidation all stay well inside a
+standard block. Custom errors instead of revert strings keep the failure paths cheap; absolute
+figures are in `docs/TESTING.md` §5.
 
 ### 9.4 Findings from independent review
 

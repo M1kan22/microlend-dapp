@@ -143,6 +143,19 @@ code and the test that exercises it.
 | Contract tests | in-process **ganache** + **ethers v6** + **solc-js** (bundled under `.tooling/nm`) | real EVM execution, no network, deterministic |
 | Backend tests | **pytest** (bundled under `.tooling/pylibs`) | same |
 
+## Deployed
+
+| | URL |
+|---|---|
+| **Live demo (hosted)** | <https://microlend-dapp-1.onrender.com> — open it and use the whole DApp, no wallet or funds needed |
+| Backend API | <https://microlend-dapp.onrender.com/api> |
+| Contract on Sepolia | [`0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA`](https://sepolia.etherscan.io/address/0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA) |
+| Source | <https://github.com/M1kan22/microlend-dapp> |
+
+The hosted build runs the Flask service in `CHAIN_MODE=mock` with an auto-seeded demo book, which
+is why it works with no RPC endpoint and no testnet balance. The Sepolia contract above is a real
+deployment with real transactions; see `docs/REPORT.md` §8 for both tracks.
+
 ## Quick start
 
 Prerequisites: Node.js and Python (bundled paths are used by the commands below). **Nothing needs to
@@ -230,6 +243,30 @@ frontend/index.html?contract=0x<deployed address>
 `backend/.env` also needs `MICROLEND_CONTRACT_ADDRESS` set to the same address when the API runs in
 `CHAIN_MODE=rpc`.
 
+### Running the backend against Sepolia
+
+The switch from the offline demo to the real chain is configuration only — no code changes:
+
+| Variable | Value | Why |
+|---|---|---|
+| `CHAIN_MODE` | `rpc` | read the pool from a node instead of the mock chain |
+| `RPC_URL` | `https://ethereum-sepolia-rpc.publicnode.com` | a free public Sepolia endpoint; no signup needed |
+| `MICROLEND_CONTRACT_ADDRESS` | `0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA` | the deployed pool |
+| `CHAIN_ID` | `11155111` | Sepolia |
+| `HOST` | `0.0.0.0` | required by Render: Flask defaults to `127.0.0.1` |
+| `PUBLIC_API_BASE` | `https://microlend-dapp.onrender.com/api` | makes `/api/config` report an absolute URL when the client is on another origin |
+| `AUTO_SEED` | `0` | **important** — the default is `true`, which writes seven flagged demo loans into SQLite; those rows are not filtered out in rpc mode |
+| `FLASK_SECRET_KEY` | any random string | signs bearer tokens |
+| `DEPLOYER_PRIVATE_KEY` | **do not set** | the backend never needs a signing key; only `scripts/deploy.js` does |
+
+Two notes on behaviour:
+
+* **A fresh pool reads as empty, not broken.** The deployed contract has no deposits yet, so
+  `/api/pool` legitimately reports `0 ETH` with a share price of `1.0`. Make one small deposit
+  against the contract and the dashboard comes alive.
+* **The free Render tier uses ephemeral storage**, so the SQLite index is rebuilt on each restart.
+  This is only a cache: deleting it loses nothing that cannot be re-derived from logs.
+
 ## Repository layout
 
 ```
@@ -253,7 +290,7 @@ sc6113-dapp/
 ├── frontend/                       zero-build DApp
 │   ├── index.html, css/styles.css
 │   ├── js/{config,abi,ui,api,wallet,contract,demo,app}.js
-│   ├── tests/{contract-parity,ui-contract}.test.mjs
+│   ├── tests/{config-apibase,contract-parity,ui-contract}.test.mjs
 │   └── vendor/ethers.umd.min.js    vendored ethers for chain mode
 ├── docs/
 │   ├── REPORT.md                   the 5–8 page academic report (assignment §IX order)
@@ -302,6 +339,7 @@ as ETH decimal strings (`"0.05"`) and are stored as integer wei strings plus a d
 ```powershell
 node test/run-tests.js                                                    # contract suite (real EVM, 13 suites)
 $env:PYTHONPATH=".tooling\pylibs"; python -m pytest backend/tests -q      # backend suite
+node frontend/tests/config-apibase.test.mjs                               # API base across origins
 node frontend/tests/contract-parity.test.mjs                              # demo engine vs contract semantics
 node frontend/tests/ui-contract.test.mjs                                  # DOM -> ledger integration (see F-10)
 node scripts/build-report.ps1                                             # optional: package the report

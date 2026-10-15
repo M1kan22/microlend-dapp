@@ -203,6 +203,11 @@ def load_settings(overrides: Mapping[str, Any] | None = None) -> dict:
         "CHAIN_NAME": os.environ.get("CHAIN_NAME") or chain_module.DEFAULT_CHAIN_NAME,
         "EXPLORER_BASE": os.environ.get("EXPLORER_BASE") or EXPLORER_DEFAULT,
         "CORS_ORIGINS": os.environ.get("CORS_ORIGINS") or "*",
+        # Absolute base for clients served from another origin (a static site in front of this
+        # API). Defaults to the path-relative "/api", which is correct when the page is served
+        # by this same host; set it to e.g. https://api.example.com/api behind a reverse proxy
+        # so the browser is told an absolute URL instead of a relative one.
+        "PUBLIC_API_BASE": (os.environ.get("PUBLIC_API_BASE") or "").rstrip("/"),
         "AUTH_TOKEN_TTL_SECONDS": _env_int("AUTH_TOKEN_TTL_SECONDS", auth_module.TOKEN_TTL_SECONDS),
         "NONCE_TTL_SECONDS": _env_int("NONCE_TTL_SECONDS", auth_module.NONCE_TTL_SECONDS),
         "RATE_LIMIT_PER_MINUTE": _env_int("RATE_LIMIT_PER_MINUTE", 240),
@@ -713,7 +718,7 @@ def _register_routes(app: Flask) -> None:
                 "chainName": app.config["CHAIN_NAME"],
                 "contractAddress": state["chain"].contract_address,
                 "explorerBase": app.config["EXPLORER_BASE"] or "",
-                "apiBase": API_BASE,
+                "apiBase": app.config["PUBLIC_API_BASE"] or API_BASE,
                 "rpcUrl": app.config["RPC_URL"] or "",
                 "chainMode": state["chain"].mode,
                 "demoMode": state["chain"].mode == "mock",

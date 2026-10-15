@@ -60,6 +60,18 @@ address(pool).balance == (totalLiquidity - reservedLiquidity) + accumulatedColla
 - `docs/INTEGRATION_SPEC.md` §1 and §2.7(12) amended to state the exact settlement and fee-routing
   rules and the corrected money invariant.
 
+## [1.3.0]
+
+### Added
+- On-chain deployment to Ethereum Sepolia: contract `0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA`, deploy transaction block 11919472,
+  `initialize` transaction block 11919473 (see `deployment.json` and report §8.1).
+- Hosted deployment: frontend <https://microlend-dapp-1.onrender.com> and Flask backend <https://microlend-dapp.onrender.com/api>, backed by
+  <https://github.com/M1kan22/microlend-dapp> (report §8.2).
+- `docs/DEPLOYMENT-LOG.md` — the deployment handover log.
+
+### Changed
+- The report records both deployment tracks and stays within the assignment's 8-page limit.
+
 ## [1.2.0]
 
 ### Added

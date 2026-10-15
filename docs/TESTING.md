@@ -555,7 +555,7 @@ and `contractAbi` (each 102 entries), roughly doubling that response body. Harml
 The frontend owner replaced the original `frontend/.selftest.mjs` (referenced in my first draft) with
 two Node test files. I ran both:
 
-**`node frontend/tests/contract-parity.test.mjs` → ALL CHECKS PASSED** (verbatim tail):
+**`node frontend/tests/config-apibase.test.mjs ; node frontend/tests/contract-parity.test.mjs` → ALL CHECKS PASSED** (verbatim tail):
 
 ```
   liquidated #1: recovered=1.0741 refund=0.0258 badDebt=0.0000

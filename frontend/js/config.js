@@ -31,7 +31,7 @@
     chainName: 'Sepolia',
     contractAddress: '0xECDaCA02f7646A8182A57c6520318D0FebC8bDCA',
     explorerBase: SEPOLIA_EXPLORER,
-    apiBase: 'https://microlend-dapp.onrender.com/api',
+    apiBase: '/api',
 
     /* --- runtime --- */
     rpcUrl: SEPOLIA_RPC,
@@ -201,14 +201,22 @@
     if (remote.explorerBase) patch.explorerBase = String(remote.explorerBase);
     if (remote.apiBase) {
       var base = String(remote.apiBase);
-      if (isFileProtocol() && base.charAt(0) === '/') {
-        /* A backend that reports a relative base is useless to a file:// page. */
-        patch.apiBase = LOCAL_API;
-      } else if (base.charAt(0) === '/' && CONFIG.apiBase && /^https?:\/\//i.test(String(CONFIG.apiBase))) {
-        /* Keep an explicit absolute base: the backend's relative "/api" only
-           resolves to the same origin as this page, which is not where the
-           backend lives when frontend and backend are deployed separately. */
-        patch.apiBase = CONFIG.apiBase;
+      if (base.charAt(0) === '/') {
+        /* The backend reports a path-relative base ("/api") because on its own host that is
+           correct. It is wrong for this page whenever the client is served from a different
+           origin — a static site in front of a separate API, or a file:// page. Resolve the
+           relative path against the base this client is already configured with, so the API
+           host is preserved instead of silently becoming the static host. */
+        var anchor = CONFIG.apiBase || (isFileProtocol() ? LOCAL_API : '');
+        if (anchor && anchor.charAt(0) !== '/') {
+          try {
+            patch.apiBase = new URL(base, anchor).toString().replace(/\/$/, '');
+          } catch (err) {
+            patch.apiBase = base;
+          }
+        } else {
+          patch.apiBase = isFileProtocol() ? LOCAL_API : base;
+        }
       } else {
         patch.apiBase = base;
       }

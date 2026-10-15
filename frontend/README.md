@@ -247,6 +247,7 @@ backend session token (`sessionStorage["ml.token"]`), the demo ledger
 Two dependency-free Node scripts (Node 18+, no browser, no network):
 
 ```
+node tests/config-apibase.test.mjs      # API base resolution (file://, cross-origin, absolute)
 node tests/contract-parity.test.mjs    # arithmetic parity with MicroLendPool.sol
 node tests/ui-contract.test.mjs        # static page contract + boot/render smoke test
 ```

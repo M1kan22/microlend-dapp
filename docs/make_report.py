@@ -84,15 +84,44 @@ def shade(element, fill: str) -> None:
 
 
 def style_cell(cell, text: str, *, bold: bool, size: float, mono: bool = False) -> None:
+    """Write a table cell, honouring `**bold**`, `` `code` `` and [links](url) inside it.
+
+    Cells used to be written as one plain run, so a markdown table containing **ZHANG SHUJIA**
+    printed the asterisks literally in the exported document.
+    """
     cell.text = ""
     para = cell.paragraphs[0]
-    para.paragraph_format.space_before = Pt(2)
-    para.paragraph_format.space_after = Pt(2)
-    run = para.add_run(text)
-    run.bold = bold
-    run.font.size = Pt(size)
-    run.font.name = "Consolas" if mono else "Calibri"
-    run.font.color.rgb = INK
+    para.paragraph_format.space_before = Pt(1)
+    para.paragraph_format.space_after = Pt(1)
+
+    def emit(chunk: str, *, force_bold: bool = False, code: bool = False) -> None:
+        if not chunk:
+            return
+        run = para.add_run(chunk)
+        run.bold = bold or force_bold
+        run.font.size = Pt(size)
+        run.font.name = "Consolas" if code else "Calibri"
+        run.font.color.rgb = INK
+
+    for token in INLINE.split(text):
+        if not token:
+            continue
+        if token.startswith("**") and token.endswith("**") and len(token) > 4:
+            emit(token[2:-2], force_bold=True)
+        elif token.startswith("`") and token.endswith("`") and len(token) > 2:
+            emit(token[1:-1], code=True)
+        elif token.startswith("[") and "](" in token:
+            label, url = token[1:-1].split("](", 1)
+            run = para.add_run(label)
+            run.bold = bold
+            run.font.size = Pt(size)
+            run.font.name = "Calibri"
+            run.font.color.rgb = ACCENT
+            run.underline = True
+            if url:
+                pass  # hyperlink target is shown in the paragraph text elsewhere
+        else:
+            emit(token)
 
 
 def hrule(paragraph) -> None:
@@ -208,7 +237,7 @@ def add_image(doc, image_path: str, caption: str) -> bool:
         pass
 
     # cap the figure height so one screenshot cannot consume a whole page
-    max_height = Inches(2.55)
+    max_height = Inches(2.0)
     width = usable_width
     if width * aspect > max_height:
         width = int(max_height / aspect)
@@ -246,21 +275,21 @@ def build_docx(md_text: str, out_path: str, *, title: str, subtitle: str, meta: 
     section.page_width = Inches(8.27)
     section.page_height = Inches(11.69)
     section.left_margin = section.right_margin = Inches(0.68)
-    section.top_margin = Inches(0.55)
-    section.bottom_margin = Inches(0.50)
+    section.top_margin = Inches(0.50)
+    section.bottom_margin = Inches(0.45)
 
     # Base styles
     normal = doc.styles["Normal"]
     normal.font.name = "Calibri"
     normal.font.size = Pt(9.8)
     normal.font.color.rgb = INK
-    normal.paragraph_format.space_after = Pt(3)
-    normal.paragraph_format.line_spacing = 1.02
+    normal.paragraph_format.space_after = Pt(2)
+    normal.paragraph_format.line_spacing = 1.0
 
     for name, size, color, before, after in (
-        ("Heading 1", 14, INK, 10, 4),
-        ("Heading 2", 11.5, ACCENT, 9, 3),
-        ("Heading 3", 10, INK, 7, 2),
+        ("Heading 1", 13.5, INK, 8, 3),
+        ("Heading 2", 11, ACCENT, 8, 3),
+        ("Heading 3", 9.8, INK, 6, 2),
     ):
         style = doc.styles[name]
         style.font.name = "Calibri"
