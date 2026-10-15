@@ -274,7 +274,11 @@ class JsonRpcClient:
         request = urllib.request.Request(
             self.url,
             data=body,
-            headers={"Content-Type": "application/json", "Accept": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": "MicroLend/1.0",
+            },
             method="POST",
         )
         try:

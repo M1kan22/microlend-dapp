@@ -20,6 +20,7 @@ import json
 import re
 import time
 import uuid
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -1377,6 +1378,19 @@ def test_rpc_chain_reads_min_collateral_bps_over_eth_call(monkeypatch):
     monkeypatch.setattr(chain_module.JsonRpcClient, "call", fake_call)
     assert chain.min_collateral_bps() == 5000
     assert "eth_call" in seen
+
+
+def test_json_rpc_requests_include_a_user_agent(monkeypatch):
+    client = chain_module.JsonRpcClient("https://rpc.example")
+    requests = []
+
+    def fake_urlopen(request, timeout):  # noqa: ANN001
+        requests.append(request)
+        return BytesIO(b'{"jsonrpc":"2.0","id":1,"result":"0x1"}')
+
+    monkeypatch.setattr(chain_module.urllib.request, "urlopen", fake_urlopen)
+    assert client.call("eth_chainId") == "0x1"
+    assert requests[0].get_header("User-agent") == "MicroLend/1.0"
 
 
 def test_rpc_chain_returns_none_when_the_getter_is_unavailable(monkeypatch):
