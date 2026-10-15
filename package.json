@@ -1,0 +1,22 @@
+{
+  "name": "microlend-dapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MicroLend - a peer-to-pool micro-lending DeFi DApp (SC6113 Individual Assignment)",
+  "license": "MIT",
+  "scripts": {
+    "compile": "node scripts/compile.js",
+    "test": "node test/run-tests.js",
+    "deploy:local": "node scripts/deploy-local.js",
+    "deploy:sepolia": "node scripts/deploy.js",
+    "dev:chain": "node scripts/dev-chain.js"
+  },
+  "devDependencies": {
+    "ethers": "^6.13.0",
+    "ganache": "^7.9.2",
+    "solc": "0.8.24"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

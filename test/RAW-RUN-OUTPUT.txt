@@ -1,0 +1,68 @@
+﻿This version of µWS is not compatible with your Node.js build:
+System.Management.Automation.RemoteException
+Error: Cannot find module '../binaries/uws_win32_x64_137.node'
+Require stack:
+- C:\Users\23774\Documents\deepseek-harness\default-workspace\sc6113-dapp\.tooling\nm\node_modules\ganache\node_modules\@trufflesuite\uws-js-unofficial\src\uws.js
+- C:\Users\23774\Documents\deepseek-harness\default-workspace\sc6113-dapp\.tooling\nm\node_modules\ganache\dist\node\core.js
+- C:\Users\23774\Documents\deepseek-harness\default-workspace\sc6113-dapp\test\harness.js
+- C:\Users\23774\Documents\deepseek-harness\default-workspace\sc6113-dapp\test\run-tests.js
+Falling back to a NodeJS implementation; performance may be degraded.
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+MicroLend contract test suite
+=============================
+compiled MicroLendPool with solc 0.8.24 (optimizer runs 200, evmVersion shanghai)
+  abi=102 entries, bytecode=12471B, sourceHash=0xe26e720a9c2eb75175679abb4a9f71cb403cfd466d3cd99fe547df8131964657
+  ganache hardfork=shanghai, in-process provider, deterministic mnemonic
+
+
+== 01 deployment + frozen interface ==
+
+== 02 deposits + share math + donation safety ==
+
+== 03 withdraw (paused exit, share burn, reserved lock) ==
+
+== 04 requestLoan validation matrix ==
+
+== 05 activation vs pending + fundLoan ==
+
+== 06 repayLoan (exact interest, fee split, late fees) ==
+
+== 07 liquidate (both branches + supplier-exit regressions) ==
+
+== 08 cancelLoan (borrower-only, pending-only, refund) ==
+
+== 09 governance + access control ==
+
+== 10 pause behaviour matrix ==
+
+== 11 read helpers (poolStats, positions, previews) ==
+
+== 12 reentrancy guard (live attacker contract) ==
+
+== 13 money invariant (rule 12) after every scenario ==
+
+Results
+=======
+  #    suite                                       assertions   passed   failed  invariants      time
+  ---  ------------------------------------------  ----------  -------  -------  ----------  --------
+  1    01 deployment + frozen interface                   142      142        0           0     2.17s
+  2    02 deposits + share math + donation safety          39       39        0           0     6.73s
+  3    03 withdraw (paused exit, share burn, r...          40       40        0           0     8.52s
+  4    04 requestLoan validation matrix                    39       39        0           0     8.54s
+  5    05 activation vs pending + fundLoan                 51       51        0           0    10.34s
+  6    06 repayLoan (exact interest, fee split...          50       50        0           0    15.01s
+  7    07 liquidate (both branches + supplier-...          69       69        0           0     9.91s
+  8    08 cancelLoan (borrower-only, pending-o...          27       27        0           0     9.46s
+  9    09 governance + access control                      62       62        0           0     9.62s
+  10   10 pause behaviour matrix                           25       25        0           0    13.68s
+  11   11 read helpers (poolStats, positions, ...          84       84        0           0     6.55s
+  12   12 reentrancy guard (live attacker cont...          76       76        0           0    24.78s
+  13   13 money invariant (rule 12) after ever...         107      107        0          14    31.15s
+  ---  ------------------------------------------  ----------  -------  -------  ----------  --------
+       TOTAL                                              811      811        0          14   159.97s
+
+All 811 assertions passed (14 money-invariant checks included).
+
+wrote test\test-results.json and test\TEST-RESULTS.md
+total elapsed 159.97s

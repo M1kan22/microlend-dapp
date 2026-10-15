@@ -1,0 +1,5028 @@
+{
+  "project": "MicroLend — peer-to-peer micro-lending DApp (SC6113)",
+  "generatedAt": "2026-10-15T08:04:22.499Z",
+  "command": "node test/run-tests.js",
+  "contract": {
+    "name": "MicroLendPool",
+    "sourceFile": "contracts/MicroLendPool.sol",
+    "abiEntries": 102,
+    "bytecodeBytes": 12471
+  },
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "win32",
+    "solc": "0.8.24",
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "shanghai",
+    "hardfork": "shanghai",
+    "chainId": 1337,
+    "ethers": "6.17.0",
+    "ganache": "7.9.2",
+    "contractAddress": null,
+    "sourceHash": "0xe26e720a9c2eb75175679abb4a9f71cb403cfd466d3cd99fe547df8131964657"
+  },
+  "moneyInvariant": {
+    "definition": "address(pool).balance == (totalLiquidity - reservedLiquidity) + accumulatedCollateral + treasuryBalance",
+    "rationale": "free liquidity + collateral held + unclaimed fees are the only ETH the contract may hold. reservedLiquidity is already inside totalLiquidity but has been disbursed to borrowers, so it is excluded. The spec's original rule-12 wording (since amended in docs/INTEGRATION_SPEC.md to the identity above) read totalLiquidity + accumulatedCollateral + treasuryBalance + DEAD_SHARES, which omits -reservedLiquidity and adds 1 wei the bootstrap deposit does not create; suite 13 measures both deviations exactly, in wei, so the amendment is reproducible rather than asserted on trust."
+  },
+  "totals": {
+    "suites": 13,
+    "assertions": 811,
+    "passed": 811,
+    "failed": 0,
+    "invariants": 14,
+    "invariantFailures": 0,
+    "elapsedMs": 134924
+  },
+  "suites": [
+    {
+      "name": "01 deployment + frozen interface",
+      "assertions": 142,
+      "passed": 142,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 1566
+    },
+    {
+      "name": "02 deposits + share math + donation safety",
+      "assertions": 39,
+      "passed": 39,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 4453
+    },
+    {
+      "name": "03 withdraw (paused exit, share burn, reserved lock)",
+      "assertions": 40,
+      "passed": 40,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 5325
+    },
+    {
+      "name": "04 requestLoan validation matrix",
+      "assertions": 39,
+      "passed": 39,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 5464
+    },
+    {
+      "name": "05 activation vs pending + fundLoan",
+      "assertions": 51,
+      "passed": 51,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 9249
+    },
+    {
+      "name": "06 repayLoan (exact interest, fee split, late fees)",
+      "assertions": 50,
+      "passed": 50,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 13718
+    },
+    {
+      "name": "07 liquidate (both branches + supplier-exit regressions)",
+      "assertions": 69,
+      "passed": 69,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 9310
+    },
+    {
+      "name": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "assertions": 27,
+      "passed": 27,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 8278
+    },
+    {
+      "name": "09 governance + access control",
+      "assertions": 62,
+      "passed": 62,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 9195
+    },
+    {
+      "name": "10 pause behaviour matrix",
+      "assertions": 25,
+      "passed": 25,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 11704
+    },
+    {
+      "name": "11 read helpers (poolStats, positions, previews)",
+      "assertions": 84,
+      "passed": 84,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 6115
+    },
+    {
+      "name": "12 reentrancy guard (live attacker contract)",
+      "assertions": 76,
+      "passed": 76,
+      "failed": 0,
+      "invariants": 0,
+      "invariantFailures": 0,
+      "elapsedMs": 22185
+    },
+    {
+      "name": "13 money invariant (rule 12) after every scenario",
+      "assertions": 107,
+      "passed": 107,
+      "failed": 0,
+      "invariants": 14,
+      "invariantFailures": 0,
+      "elapsedMs": 26969
+    }
+  ],
+  "failures": [],
+  "records": [
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function initialize(address,address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function deposit()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function withdraw(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function requestLoan(uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function fundLoan(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function repayLoan(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function cancelLoan(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function liquidate(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function claimTreasury(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function setParams(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function setPaused(bool)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function setTreasury(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes mutating function transferOwnership(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper sharePrice()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper convertToShares(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper convertToAssets(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper getLoan(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper getUserLoans(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper liabilities()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper previewInterest(uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper previewRepayment(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper collateralRatio(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper isOverdue(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper quoteCollateral(uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper poolStats()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper getUserPosition(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper sharesOf(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper owner()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper treasury()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper paused()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper initialized()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper totalShares()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper totalLiquidity()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper reservedLiquidity()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper totalDeposited()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper totalInterestEarned()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper totalFeesCollected()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper totalBadDebt()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper treasuryBalance()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper loanCount()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper accumulatedCollateral()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper minDeposit()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper minLoanPrincipal()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper maxLoanPrincipal()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper maxDurationDays()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper maxRateBps()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper minCollateralBps()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper feeBps()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper penaltyBps()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes read helper lateFeeBps()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error NotOwner()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error AlreadyInitialized()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error NotInitialized()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error ZeroAddress()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error PoolPaused()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error ZeroAmount()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error AmountTooSmall(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error AmountTooLarge(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error DurationInvalid(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error RateTooHigh(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error InsufficientCollateral(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error InsufficientLiquidity(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error InvalidLoan(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error LoanNotPending(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error LoanNotActive(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error LoanNotOverdue(uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error NotBorrower(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error NotFunded(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error InsufficientPayment(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error InsufficientShares(uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error NothingToWithdraw()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error NoFees()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error TransferFailed()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes custom error InvalidParameter(string)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event Initialized(address,address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LiquidityDeposited(address,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LiquidityWithdrawn(address,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LoanRequested(uint256,address,uint256,uint256,uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LoanActivated(uint256,address,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LoanFunded(uint256,address,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LoanRepaid(uint256,address,uint256,uint256,uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LoanLiquidated(uint256,address,address,uint256,uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event LoanCancelled(uint256,address,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event TreasuryClaimed(address,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event ParamsUpdated(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event PausedSet(bool)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event TreasurySet(address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes event OwnershipTransferred(address,address)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "ABI exposes at least 100 entries (spec surface is complete)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "POOL_ID == keccak256(\"MICROLEND_POOL_V1\")",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "BPS_DENOMINATOR == 10_000",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "DAYS_PER_YEAR == 365",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "DEAD_SHARES == 1",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "MAX_FEE_BPS == 2_000",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "MAX_PENALTY_BPS == 2_000",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "MAX_LATE_FEE_BPS == 2_000",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "LATE_PERIOD == 30 days",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "MIN_COLLATERAL_FLOOR_BPS == 5_000",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default minDeposit == 1e12 wei",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default minLoanPrincipal == 1e13 wei",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default maxLoanPrincipal == 100 ether",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default maxDurationDays == 365",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default maxRateBps == 5_000 (50% APR ceiling)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default minCollateralBps == 10_000 (100% of principal)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default feeBps == 1_000 (10% of interest)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default penaltyBps == 500 (5% liquidation penalty)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "default lateFeeBps == 100 (1% per started 30 days)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize() sets initialized = true",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize(0,0) defaults owner to msg.sender",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize(0,0) defaults treasury to msg.sender",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "pool starts unpaused",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "loanCount starts at 0",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "totalShares starts at 0",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "totalLiquidity starts at 0",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "sharePrice() == 1e18 while the pool is empty (1 share == 1 wei)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize() a second time reverts AlreadyInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize(treasury_, owner_) stores treasury_",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize(treasury_, owner_) stores owner_",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize emits Initialized(treasury, owner)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize emits TreasurySet(treasury)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize emits OwnershipTransferred(0x0, owner)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize does not emit PausedSet",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize(0x0,0x0) uses the caller as owner",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "initialize(0x0,0x0) uses the caller as treasury",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "deposit() before initialize() reverts NotInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "withdraw(1) before initialize() reverts NotInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "requestLoan() before initialize() reverts NotInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "fundLoan(1) before initialize() reverts NotInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "repayLoan(1) before initialize() reverts NotInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "cancelLoan(1) before initialize() reverts NotInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "liquidate(1) before initialize() reverts NotInitialized",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "claimTreasury(0x0) before initialize() reverts NotOwner (onlyOwner is checked before whenReady)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "setParams(...) before initialize() reverts NotOwner (onlyOwner is checked before whenReady)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "setPaused(true) before initialize() reverts NotOwner (onlyOwner is checked before whenReady)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "setTreasury(...) before initialize() reverts NotOwner (onlyOwner is checked before whenReady)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "transferOwnership(...) before initialize() reverts NotOwner (onlyOwner is checked before whenReady)",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "an un-initialised pool still reports owner == 0x0",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "un-initialised contract reports initialized == false",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "getLoan(unknown id).id == 0",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "getLoan(unknown id).borrower == 0x0",
+      "ok": true
+    },
+    {
+      "suite": "01 deployment + frozen interface",
+      "kind": "assert",
+      "name": "getLoan(unknown id).status == LoanStatus.None",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "deposit() with 0 wei reverts ZeroAmount",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "first deposit below minDeposit reverts AmountTooSmall(value, minDeposit)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "deposit(0.000000001 ETH) from another wallet reverts AmountTooSmall with the same minimum",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "deposit() while paused reverts PoolPaused",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "first deposit mints exactly value - DEAD_SHARES shares to the depositor",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "totalShares after the bootstrap deposit == deposited value (dead share included)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "exactly DEAD_SHARES == 1 share stays on the contract (nobody owns it)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "totalLiquidity == deposited value",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "totalDeposited == deposited value",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "share price is exactly 1e18 (1 share == 1 wei) after bootstrap",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "LiquidityDeposited emits (supplier, amount, sharesMinted = amount - 1)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "the contract holds exactly the deposited ETH",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "after the bootstrap depositor exits, only the DEAD_SHARES supply remains",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "the contract then holds exactly DEAD_SHARES wei (no hidden extra wei)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "totalLiquidity == 1 wei == the dead share",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "first deposit of exactly DEAD_SHARES wei reverts AmountTooSmall(value, DEAD_SHARES + 1)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "first deposit of 2 wei mints 1 share (dead-share bootstrap path)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "bootstrap path still emits the exact sharesMinted",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "with a 1:1 price the pro-rata formula yields exactly the deposited wei",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "second depositor mints floor(assets * totalShares / totalLiquidity) shares",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "second LiquidityDeposited carries the exact share count",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "totalShares sums both depositors plus the dead share",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "totalLiquidity sums both deposits",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "totalDeposited is a lifetime accumulator",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "share price is still 1e18 while nobody has earned interest",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "a call with empty calldata hits receive() and is rejected by the EVM",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "receive() reverts with custom error ZeroAmount",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "unknown selector (fallback) reverts with ZeroAmount",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "a real signed ETH transfer to the pool is mined with status 0",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "the rejected donation leaves the pool balance untouched",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "the rejected donation mints no shares",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "share value is unchanged by the rejected donation",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "with minDeposit lowered, a 1 wei deposit still mints 1 share (price is exactly 1:1)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "the victim can redeem the same 1 wei back — no rounding loss for a 1 wei deposit",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "a donation-style deposit can never be worth more than it paid",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "attacker cannot donate 100 ETH to inflate the share price (receive() rejects it)",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "the blocked donation left the pool balance at deposit + 1 wei",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "victim share value is untouched after the blocked donation attempt",
+      "ok": true
+    },
+    {
+      "suite": "02 deposits + share math + donation safety",
+      "kind": "assert",
+      "name": "bootstrap depositor keeps at least the principle of their shares",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "withdraw(0) reverts ZeroAmount",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "withdraw(more than owned) reverts InsufficientShares(requested, owned)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "withdraw from a wallet with no shares reverts InsufficientShares(requested, 0)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "a 1:1 share burn returns exactly shares wei (net of gas)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "LiquidityWithdrawn emits (supplier, sharesBurned, amountReturned)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the caller's share balance is zeroed",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "totalShares drops back to the parked DEAD_SHARES only",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "totalLiquidity drops to the 1 wei the dead share represents",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the contract keeps exactly the dead share's wei",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the second depositor mints exactly minDeposit shares at a 1:1 price",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "partial withdraw burns only the requested shares",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the remaining share is still worth its 1 wei",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "poolStats reports paused == true",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "withdraw() succeeds while paused (users can always exit)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the paused withdrawal still emits correct amounts",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "withdrawing does not unpause the pool",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "paused withdrawal burns exactly the requested shares",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "available liquidity is 2 ETH after an 8 ETH loan is reserved",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "reservedLiquidity holds the outstanding principal",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "withdraw(9 ETH of shares) reverts InsufficientLiquidity(assets, available = 2 ETH)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "withdraw(available) succeeds exactly at the boundary",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "free liquidity is exhausted afterwards",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the reservation itself is untouched by supplier exits",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the boundary withdrawal burned only its own shares",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "an on-time repayment has no late fee",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "totalLiquidity grows by exactly the net interest after repayment",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "totalInterestEarned records the gross interest charged",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the protocol fee lands in treasuryBalance and never in totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "supplier share value == floor(shares * (deposit + netInterest) / totalShares)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "sharePrice() == totalLiquidity * 1e18 / totalShares",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "share price is above 1:1 once interest has been repaid",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the sole supplier's full exit succeeds with the exact assets",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the supplier exits with exactly deposit + net interest (floor)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "supplier profit == netInterest - 2 wei of rounding (exact wei)",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "only the dead share remains after the full exit",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the dust left in totalLiquidity is exactly the rounding remainder",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the rounding remainder is exactly 2 wei",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "nothing is reserved after the loan is repaid",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "the pool drains to exactly treasuryBalance + rounding dust",
+      "ok": true
+    },
+    {
+      "suite": "03 withdraw (paused exit, share burn, reserved lock)",
+      "kind": "assert",
+      "name": "money invariant after the sole supplier's full exit",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "requestLoan(principal = 0) reverts ZeroAmount",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "requestLoan without collateral (msg.value = 0) reverts ZeroAmount",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "principal below minLoanPrincipal reverts AmountTooSmall(principal, minLoanPrincipal)",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "principal above maxLoanPrincipal reverts AmountTooLarge(principal, maxLoanPrincipal)",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "durationDays == 0 reverts DurationInvalid(0, maxDurationDays)",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "durationDays above maxDurationDays reverts DurationInvalid(duration, maxDurationDays)",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "rateBps above maxRateBps reverts RateTooHigh(rateBps, maxRateBps)",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "collateral 1 wei short of the 100% requirement reverts InsufficientCollateral(provided, required)",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "collateral of 80% of principal reverts InsufficientCollateral with exact required amount",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "principal == minLoanPrincipal is accepted",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "durationDays == maxDurationDays is accepted",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "rateBps == maxRateBps is accepted",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "collateral exactly == ceil(principal * minCollateralBps / 10_000) is accepted",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "principal == maxLoanPrincipal is accepted",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "owner can raise minCollateralBps above 100% (no upper cap in setParams)",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "collateral requirement is rounded UP (ceil): 3 wei principal at 100.01% needs 4 wei",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "quoteCollateral() reports the same ceil() requirement",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "quoteCollateral() reports totalDue == principal at 0 bps",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "LoanRequested carries the exact request parameters",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the dusty 3 wei loan still activates because the pool has free liquidity",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the dusty loan stores the exact 4 wei collateral",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the first loan gets id 1",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "loanCount increments per request",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the loan stores the borrower",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the loan freezes rateBps at request time",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the loan freezes durationDays at request time",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the loan freezes the exact simple interest",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the loan stores the posted collateral",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "an instantly funded loan records startTime",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "dueDate == startTime + durationDays days",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "instant activation emits LoanActivated",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "accumulatedCollateral tracks the locked collateral",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "getUserLoans() records the new loan id",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "a request exceeding free liquidity becomes Pending",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "a pending request has nothing funded",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "a pending request has no startTime",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "a pending request has no dueDate",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "the pending request still consumed a loan id",
+      "ok": true
+    },
+    {
+      "suite": "04 requestLoan validation matrix",
+      "kind": "assert",
+      "name": "requestLoan() while paused reverts PoolPaused",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "with enough free liquidity the loan activates immediately (status Active)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "an instantly active loan is marked fully funded",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "activation re-derives the frozen interest from the stored rate/duration",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the borrower pays collateral and gets the principal back, so the net cost is gas only",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "LoanActivated(loanId, borrower, startTime, dueDate) is emitted",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "dueDate == startTime + durationDays * 1 days",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "reservedLiquidity == the disbursed principal",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the borrower's collateral is held in accumulatedCollateral",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "activeLoanCountOf[borrower] == 1",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "pendingLoanCountOf[borrower] == 0 after activation",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the pool holds its own deposit + collateral - disbursed principal",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "a request above free liquidity stays Pending",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "a pending loan has no funding yet",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "a pending loan has startTime == 0",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "a pending loan has dueDate == 0",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the pending borrower only paid collateral (+gas) and received nothing",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "pendingLoanCountOf[borrower] == 1",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "activeLoanCountOf[borrower] == 0 while pending",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "a pending loan reserves no liquidity",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the pending collateral is still pooled",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "no LoanActivated event is emitted for a pending request",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan mints floor(amount * totalShares / totalLiquidity) shares for the funder",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan emits LiquidityDeposited like a normal deposit",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "LoanFunded(loanId, funder, amount, totalFunded)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "amountFunded tracks the partial contribution",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the loan is still Pending until fully funded",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan counts towards totalDeposited",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "partial funding still reserves no liquidity",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the loan is fully funded once amountFunded == principal",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "full funding activates the loan",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the completing funder receives the pro-rata shares too",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "completion emits LoanActivated",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the borrower is paid out the full principal on completion (the funder pays the gas)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "activation reserves the principal",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the borrower now has one active loan",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "their pending counter is cleared",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "availableLiquidity after activation == totalLiquidity - principal",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan on an unknown id reverts InvalidLoan(id)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan(1) with an empty book reverts InvalidLoan(1)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan on an Active loan reverts LoanNotPending(id)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan with no ETH reverts ZeroAmount",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan above the remaining principal reverts AmountTooLarge(value, remaining)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the remaining check uses amountFunded, not just principal",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "after a repayment totalLiquidity > totalShares (share price above 1)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan of 1 wei when a wei buys < 1 share reverts AmountTooSmall(value, minDeposit)",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "a larger contribution mints at least one share",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the successful contribution emits LoanFunded",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "fundLoan() while paused reverts PoolPaused",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "loanCount still reflects the paused-out request",
+      "ok": true
+    },
+    {
+      "suite": "05 activation vs pending + fundLoan",
+      "kind": "assert",
+      "name": "the supplier keeps their shares while the pool is paused",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "harness: 1 ETH at 1000 bps for 30 days is exactly 8219178082191780 wei",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "previewInterest(1 ETH, 1000 bps, 30 d) == principal * rateBps * days / (10000 * 365)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "previewInterest at 0 bps is 0",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "previewInterest at 50% APR for 365 days is exactly half the principal",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the loan stores the exact frozen interest",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "amountDue == principal + interest before the due date",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "no late fee before the due date",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "repayLoan one wei short reverts InsufficientPayment(provided, required)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the payer funds the whole repayment (net of gas)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the borrower gets the collateral back",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "LoanRepaid(loanId, payer, principal, interest, lateFee, fee, totalPaid)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the loan is marked Repaid",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the loan's collateral is zeroed",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "accumulatedCollateral drops back to zero",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "reservedLiquidity is released",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "activeLoanCountOf[borrower] drops to zero",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "totalInterestEarned == the gross interest charged",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "totalFeesCollected == interest * feeBps / 10000",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "treasuryBalance == the protocol fee",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "totalLiquidity grows by exactly the net interest (fee excluded)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "a second repayment reverts LoanNotActive(id)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the overpayment is fully refunded to the payer (net of gas)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the recorded totalPaid excludes the refunded overpayment",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the refund does not inflate totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "repayLoan on an unknown id reverts InvalidLoan(id)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "repaying a Pending loan reverts LoanNotActive(id)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "previewRepayment on a Pending loan reverts LoanNotActive(id)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "15 minutes overdue is exactly 1 started late period",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "lateFee == baseDue * lateFeeBps * periods / 10000 (exact)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "amountDue == baseDue + lateFee (exact)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "a late repayment costs strictly more than an on-time one",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "LoanRepaid reports the late fee in wei",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "totalInterestEarned includes the late fee",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the protocol fee is still computed on plain interest only",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the whole late fee is credited to the suppliers' totalLiquidity claim",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "30 days + 15 minutes overdue is exactly 2 started late periods",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the late fee doubles for the second started period (exact)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "amountDue follows the periods formula exactly",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "changing feeBps after the request does not change this loan's amount due",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the stored interest stays frozen",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the pool is still paused after the repayment",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "repayLoan succeeds while paused (no whenLive gate)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the paused repayment emits the exact figures",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "a late repayment leaves suppliers with more than an on-time one",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the protocol fee is identical in both cases",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "money invariant after the late repayment (no reserved liquidity)",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "money invariant after the on-time repayment",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "no bad debt was recorded",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the extra interest earned vs an on-time repayment is exactly the late fee",
+      "ok": true
+    },
+    {
+      "suite": "06 repayLoan (exact interest, fee split, late fees)",
+      "kind": "assert",
+      "name": "the late fee captured for the comparison is non-zero",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "liquidate before dueDate reverts LoanNotOverdue(id)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the chain clock lands exactly on the due date",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "liquidate exactly at dueDate reverts LoanNotOverdue(id) (strictly greater-than check)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "isOverdue() is false exactly at the due date",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "isOverdue() is true past the due date",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the liquidation lands in the first started late period",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "previewRepayment at liquidation time == baseDue + lateFee (exact)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "previewRepayment reports the exact late fee",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "excess-collateral compensation == owed + penalty",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the 3 ETH collateral covers the owed amount plus the penalty",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "LoanLiquidated(loanId, borrower, liquidator, collateralSeized, compensation, refund, badDebt)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the excess collateral is refunded to the borrower",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the liquidator is paid no bounty (only gas)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "refund == collateral - compensation (exact)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the loan is marked Liquidated",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the seized collateral is zeroed on the loan",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "accumulatedCollateral releases the seizure",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the principal reservation is released",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "activeLoanCountOf[borrower] drops to zero",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "no bad debt is recorded in the excess-collateral branch",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "totalLiquidity == deposit - principal + compensation (suppliers give up the principal claim, take the seizure)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "totalInterestEarned records owed - principal (interest + late fee)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "liquidation collects no protocol fee",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "liquidating the same loan twice reverts LoanNotActive(id)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the sole supplier's claim is exactly floor(shares * totalLiquidity / totalShares)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "with the 1 wei dead share the redemption is totalLiquidity - 2 wei",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "after an excess-collateral liquidation the supplier is still whole",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the sole supplier's full exit succeeds after liquidation",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the supplier receives the exact redemption (net of gas)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "only the dead share remains",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the remainder is exactly the rounding dust",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "rounding dust is exactly 2 wei",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the pool drains to exactly liabilities after the exit",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the remaining free-liquidity claim is fully backed by ETH in the contract",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "owner lowered minCollateralBps to the 5_000 floor",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the loan only posts 50% collateral (allowed at 5_000 bps)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "on a shortfall the compensation is capped at the collateral",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the uncovered remainder is owed - collateral",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the shortfall is positive and reachable with 50% collateral",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "LoanLiquidated reports compensation == collateral, refund == 0 and the exact bad debt",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the defaulting borrower receives no refund (the liquidator pays the gas)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "totalBadDebt == owed - collateral (exact)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the seized collateral leaves accumulatedCollateral",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "reservedLiquidity <= totalLiquidity after a shortfall liquidation (no underflow)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the reservation is fully released",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "totalLiquidity == deposit - principal + collateral (suppliers absorb the 0.5 ETH shortfall)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "suppliers are the residual claimant: their claim drops below the deposit",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "a liquidated loan is no longer reported overdue",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the sole supplier's claim reflects the written-off principal",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the sole supplier's redemption is now strictly less than the deposit",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the supplier's realised loss is exactly principal - collateral + 1 wei dust",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the sole supplier can still exit fully after a bad-debt liquidation",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the supplier receives the reduced redemption (net of gas)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "only the dead share remains after the exit",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the dust remainder is exactly the rounding difference",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the pool drains to exactly liabilities after the loss-making exit",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "a defaulted loan collects no protocol fee",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "after the loss, totalLiquidity < totalShares",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the 1 wei depositor receives exactly 1 share",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "that single share is worth 0 wei after the loss",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "withdrawing a share worth 0 wei reverts NothingToWithdraw",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "liquidate on an unknown id reverts InvalidLoan(id)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "liquidating a Pending loan reverts LoanNotActive(id)",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the second loan liquidates normally",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the Pending loan is still not liquidatable",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "the pending loan keeps its status",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "no bad debt from the covered loan",
+      "ok": true
+    },
+    {
+      "suite": "07 liquidate (both branches + supplier-exit regressions)",
+      "kind": "assert",
+      "name": "money invariant after a mixed pending/liquidated book",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the request is pending before cancellation",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the pending collateral is pooled",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "LoanCancelled(loanId, borrower, collateralRefunded)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the borrower gets the full collateral back (net of gas)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the pool releases exactly the collateral",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the loan is marked Cancelled",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the cancelled loan holds no collateral",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "accumulatedCollateral is cleared",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "pendingLoanCountOf[borrower] drops to zero",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "cancelling a loan does not touch totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the pool balance returns to the supplier deposit",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "cancelling twice reverts LoanNotPending(id)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "a non-borrower cancelling reverts NotBorrower(caller)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "even the owner cannot cancel somebody else's request (NotBorrower)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "cancelLoan on an unknown id reverts InvalidLoan(id)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "cancelling an Active loan reverts LoanNotPending(id)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "cancelling a Repaid loan reverts LoanNotPending(id)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the repaid loan is untouched by the failed cancel",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the second loan had been active before repayment",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the loan is partially funded",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "a partially funded loan is still Pending",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "cancelling a funded request reverts NotFunded(funded, principal)",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "full funding activated the loan",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "an active loan cannot be cancelled",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "cancelLoan works while the pool is paused",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the paused cancellation emits the exact refund",
+      "ok": true
+    },
+    {
+      "suite": "08 cancelLoan (borrower-only, pending-only, refund)",
+      "kind": "assert",
+      "name": "the pool stays paused after the cancellation",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams(...) from a non-owner reverts NotOwner",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setPaused(true) from a non-owner reverts NotOwner",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setTreasury(...) from a non-owner reverts NotOwner",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "transferOwnership(...) from a non-owner reverts NotOwner",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "claimTreasury(...) from a non-owner reverts NotOwner",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the previous owner loses control after transferOwnership",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the previous owner cannot call setParams",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the new owner can administer the pool",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects minDeposit == 0 with InvalidParameter(\"minDeposit\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects minLoanPrincipal == 0 with InvalidParameter(\"minLoanPrincipal\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects maxLoanPrincipal < minLoanPrincipal with InvalidParameter(\"maxLoanPrincipal\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects maxDurationDays == 0 with InvalidParameter(\"maxDurationDays\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects maxRateBps == 0 with InvalidParameter(\"maxRateBps\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects maxRateBps > 10000 with InvalidParameter(\"maxRateBps\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects minCollateralBps < 5000 floor with InvalidParameter(\"minCollateralBps\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects feeBps > 2000 with InvalidParameter(\"feeBps\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects penaltyBps > 2000 with InvalidParameter(\"penaltyBps\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setParams rejects lateFeeBps > 2000 with InvalidParameter(\"lateFeeBps\")",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "a rejected setParams leaves feeBps untouched",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "a rejected setParams leaves minCollateralBps untouched",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "a rejected setParams leaves maxLoanPrincipal untouched",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "ParamsUpdated echoes all nine parameters in order",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "feeBps == MAX_FEE_BPS is accepted",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "penaltyBps == MAX_PENALTY_BPS is accepted",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "lateFeeBps == MAX_LATE_FEE_BPS is accepted",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "maxRateBps == BPS_DENOMINATOR (100% APR) is accepted",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "minCollateralBps has no upper cap: 20_000 (200%) is accepted",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "maxDurationDays updates",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "minCollateralBps == MIN_COLLATERAL_FLOOR_BPS (5_000) is accepted",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the new minDeposit is applied verbatim",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "minCollateralBps one below the floor is rejected",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setPaused(true) emits PausedSet(true)",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setPaused(true) sets the flag",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setPaused(false) emits PausedSet(false)",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setPaused(false) clears the flag",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setTreasury(0x0) reverts ZeroAddress",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setTreasury emits TreasurySet(newTreasury)",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "setTreasury updates the treasury",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "transferOwnership(0x0) reverts ZeroAddress",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "transferOwnership emits OwnershipTransferred(previous, new)",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "transferOwnership updates the owner",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "claimTreasury(0x0) reverts ZeroAddress even before the NoFees check",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "claimTreasury with no accrued fees reverts NoFees",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "a repayment accrues exactly fee = interest * feeBps / 10000",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "totalFeesCollected tracks the lifetime fee",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "TreasuryClaimed(to, amount) pays the full accrued fee",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the recipient receives the exact fee amount",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "treasuryBalance is drained",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "claimTreasury does NOT reduce supplier claims (the fee was never inside totalLiquidity)",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "money invariant after claimTreasury",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "claiming twice reverts NoFees",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the pool holds a fee to claim",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "free liquidity exceeds 1 wei before reserving",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "only 1 wei of free liquidity is left",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "claimTreasury is capped at availableLiquidity (1 wei)",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "only the capped amount leaves treasuryBalance",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "reservedLiquidity <= totalLiquidity still holds",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "a freshly deployed pool is un-initialised",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the FIRST caller of initialize() becomes the owner (front-running is possible)",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the first caller also sets the treasury",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the legitimate deployer can no longer initialize: first-caller-wins is a documented known limitation",
+      "ok": true
+    },
+    {
+      "suite": "09 governance + access control",
+      "kind": "assert",
+      "name": "the grabbed pool stays initialised and usable by the attacker",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "deposit() is blocked while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "requestLoan() is blocked while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "fundLoan() is blocked while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "poolStats reports the paused flag",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the blocked requestLoan created no loan",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "withdraw() succeeds while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the paused exit burns exactly the requested shares",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the pool remains paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "repayLoan() succeeds while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the paused repayment reports the exact figures",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the pool remains paused after repayment",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "cancelLoan() succeeds while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the paused cancellation refunds the collateral",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "liquidate() succeeds while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the paused liquidation emits LoanLiquidated",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the paused liquidation recorded no bad debt",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "claimTreasury() succeeds while paused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the paused claim drains treasuryBalance",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "deposit is blocked while paused (pre-condition)",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "unpausing emits PausedSet(false)",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "deposit works again after unpausing",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the post-unpause deposit minted the pro-rata shares",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the pool reports unpaused",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "a non-owner cannot pause the pool",
+      "ok": true
+    },
+    {
+      "suite": "10 pause behaviour matrix",
+      "kind": "assert",
+      "name": "the failed call left the pool running",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "previewInterest matches the spec formula exactly",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "0 bps charges no interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "100% APR for 365 days is exactly the principal",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "a 0.00001 ETH loan at 50% APR for a year is exact",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "sub-wei interest truncates to 0 (integer maths)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "quoteCollateral at 10000 bps requires exactly the principal",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "quoteCollateral totalDue == principal + interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "the difference between totalDue and collateral is the interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "an empty pool reports a nominal 1e18 share price",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "empty pool: convertToShares(assets) == assets (bootstrap 1:1)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "empty pool: convertToAssets(shares) == 0 (no supply)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "share price is 1e18 while no interest has been earned",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "convertToShares is 1:1 at the bootstrap price",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "convertToAssets round-trips at the bootstrap price",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "convertToAssets(convertToShares(x)) == x at 1:1",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.id",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.borrower",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.principal",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.collateral",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.rateBps",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.durationDays",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.startTime/dueDate span the term",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.amountFunded",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan.status == Active (2)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.totalShares",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.availableLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.totalDeposited",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.totalInterestEarned",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.totalFeesCollected",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.totalBadDebt",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.treasuryBalance",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.loanCount",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.sharePrice",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "poolStats.paused",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "liabilities.supplierClaims == totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "liabilities.collateralHeld == accumulatedCollateral",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "liabilities.fees == treasuryBalance",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "collateralRatio == collateral * 10000 / totalDue (exact)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "a 100% collateral loan is slightly under-collateralised once interest is added",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "previewRepayment.amountDue == principal + interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "previewRepayment.lateFee == 0 before the due date",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "isOverdue is false during the term",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserLoans(borrower) contains the loan id",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserLoans(borrower) has exactly one entry",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserLoans(unknown) is empty",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.shares",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.shareValue",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.collateralLocked is 0 for a pure supplier",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.activeLoans is 0 for a pure supplier",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.pendingLoans is 0 for a pure supplier",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.outstandingDebt is 0 for a pure supplier",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "borrower has no shares",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "borrower share value is 0",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.collateralLocked tracks the active loan",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.activeLoans == 1",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.pendingLoans == 0",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getUserPosition.outstandingDebt == principal + interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "collateralRatio scales with the posted collateral",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "a 300% collateral loan is above 100% covered",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "more collateral means a higher ratio",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "the excess-collateral loan stores the full collateral",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "the over-sized request is pending",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "pending collateral is reported in collateralLocked",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "a pending loan does not count as active",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "a pending loan is counted in pendingLoans",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "a pending loan has no outstanding debt yet",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "collateralRatio on an unknown id reverts InvalidLoan(id)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "previewRepayment on an unknown id reverts InvalidLoan(id)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "isOverdue on an unknown id is false (no revert)",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "getLoan on an unknown id returns the empty struct",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "totalLiquidity after repayment == deposit + net interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "sharePrice reflects the earned net interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "share price appreciates above 1:1",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "liabilities.supplierClaims == totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "no collateral is held after repayment",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "liabilities.fees == the accrued protocol fee",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "totalInterestEarned is the gross interest",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "totalFeesCollected is the protocol cut",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "a repaid loan is never overdue",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "the repaid borrower has no collateral locked",
+      "ok": true
+    },
+    {
+      "suite": "11 read helpers (poolStats, positions, previews)",
+      "kind": "assert",
+      "name": "the repaid borrower has no outstanding debt",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the reentrancy probe contract compiles to non-empty bytecode",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the Reentrancy() selector is a 4-byte value",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "ownership moved to the probe so onlyOwner cannot mask the guard",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering deposit() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering deposit() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering deposit() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering deposit() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering requestLoan() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering requestLoan() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering requestLoan() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering requestLoan() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering fundLoan() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering fundLoan() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering fundLoan() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering fundLoan() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering repayLoan() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering repayLoan() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering repayLoan() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering repayLoan() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering cancelLoan() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering cancelLoan() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering cancelLoan() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering cancelLoan() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering liquidate() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering liquidate() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering liquidate() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering liquidate() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering claimTreasury() during withdraw: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering claimTreasury() during withdraw: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering claimTreasury() during withdraw: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering claimTreasury() during withdraw: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer withdrawals all completed and consumed the probe's shares",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "money invariant intact after the eight blocked re-entries",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during requestLoan's disbursement: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during requestLoan's disbursement: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during requestLoan's disbursement: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during requestLoan's disbursement: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer requestLoan still activated normally",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer requestLoan still reserved the principal",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the probe's request is pending with zero liquidity",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during fundLoan's activation payout: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during fundLoan's activation payout: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during fundLoan's activation payout: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during fundLoan's activation payout: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer fundLoan still activated the loan",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during repayLoan's collateral refund: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during repayLoan's collateral refund: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during repayLoan's collateral refund: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during repayLoan's collateral refund: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer repayLoan still settled the loan",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during cancelLoan's refund: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during cancelLoan's refund: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during cancelLoan's refund: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during cancelLoan's refund: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer cancelLoan still cancelled the request",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during liquidate's refund: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during liquidate's refund: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during liquidate's refund: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during liquidate's refund: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer liquidate still settled the loan",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "a fee is waiting to be claimed",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during claimTreasury's payout: the pool's ETH callback fired exactly once",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during claimTreasury's payout: the re-entrant call reverted",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during claimTreasury's payout: the re-entrant call never succeeded",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "re-entering withdraw during claimTreasury's payout: the inner revert is Reentrancy()",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the outer claimTreasury still paid out the fee",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the probe can deposit normally when not re-entering",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the control withdrawal makes no re-entry attempt",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the control withdrawal sees no guard revert",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the plain withdrawal burned all the probe's shares",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "money invariant after the non-reentrant control flow",
+      "ok": true
+    },
+    {
+      "suite": "12 reentrancy guard (live attacker contract)",
+      "kind": "assert",
+      "name": "the probe held shares before the control withdrawal",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "1 bootstrap deposit: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "1 bootstrap deposit: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "1 bootstrap deposit: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "1 bootstrap deposit: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "1 bootstrap deposit: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "1: the contract holds exactly the deposit",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "1: nothing is reserved yet",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "2 second deposit: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "2 second deposit: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "2 second deposit: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "2 second deposit: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "2 second deposit: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "2: the contract holds both deposits",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "3 loan activation: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "3 loan activation: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "3 loan activation: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "3 loan activation: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "3 loan activation: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "3: collateral in, principal out — the balance is back to the deposit",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "3: the principal is reserved",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "3: totalLiquidity still includes the lent principal (suppliers hold the claim)",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "4 partial fundLoan: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "4 partial fundLoan: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "4 partial fundLoan: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "4 partial fundLoan: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "4 partial fundLoan: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "4: the pending collateral is still held",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "4: a partially funded loan reserves nothing",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "5 fundLoan completion: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "5 fundLoan completion: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "5 fundLoan completion: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "5 fundLoan completion: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "5 fundLoan completion: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "5: completion reserves the principal",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "5: deposit + pending collateral - disbursed principal",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "6 withdrawal: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "6 withdrawal: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "6 withdrawal: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "6 withdrawal: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "6 withdrawal: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "6: the ETH left with the supplier",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "7 on-time repayment: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "7 on-time repayment: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "7 on-time repayment: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "7 on-time repayment: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "7 on-time repayment: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "7: the fee is a separate treasury claim",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "7: suppliers gained exactly the net interest",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "7: the collateral went home to the borrower",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "8 late repayment: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "8 late repayment: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "8 late repayment: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "8 late repayment: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "8 late repayment: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "8: suppliers gained net interest + the whole late fee",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "8: the treasury fee is unaffected by the late fee",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "9 full supplier exit after repayment: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "9 full supplier exit after repayment: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "9 full supplier exit after repayment: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "9 full supplier exit after repayment: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "9 full supplier exit after repayment: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "9: only the dead share is left",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "9: the pool is drained to exactly the treasury fee + 2 wei of rounding dust",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "10 excess-collateral liquidation: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "10 excess-collateral liquidation: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "10 excess-collateral liquidation: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "10 excess-collateral liquidation: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "10 excess-collateral liquidation: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "10: all collateral was released",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "10: the reservation was released",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "10: suppliers keep the principal claim and gain the penalty",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "11 bad-debt liquidation: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "11 bad-debt liquidation: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "11 bad-debt liquidation: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "11 bad-debt liquidation: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "11 bad-debt liquidation: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "11: the supplier claim falls by the uncovered principal",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "11: suppliers are the residual claimant and take the loss",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "11: the reservation is released without underflow",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "12 cancelLoan: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "12 cancelLoan: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "12 cancelLoan: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "12 cancelLoan: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "12 cancelLoan: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "12: the refunded collateral is no longer held",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "12: the pool is back to the supplier deposit",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "13 claimTreasury: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "13 claimTreasury: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "13 claimTreasury: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "13 claimTreasury: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "13 claimTreasury: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "13: the treasury claim is drained",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "13: supplier claims are untouched",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "13: only the supplier backing is left in the contract",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "invariant",
+      "name": "14 mixed loan book: balance == free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "14 mixed loan book: availableLiquidity == totalLiquidity - reservedLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "14 mixed loan book: reservedLiquidity <= totalLiquidity",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "14 mixed loan book: totalBadDebt == expected write-off",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "14 mixed loan book: balance decomposes into free liquidity + collateral + fees",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "14: pending + active collateral is held",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "14: only the active loan is reserved",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "14: fees have accrued from the repayment",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "15: the literal rule-12 formula overshoots by exactly DEAD_SHARES after a bootstrap deposit",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "15: the overshoot equals the declared DEAD_SHARES constant",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "15: after activation the literal formula also overshoots by the reserved principal (+ DEAD_SHARES)",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "15: the AMENDED rule-12 identity holds exactly where the literal text does not",
+      "ok": true
+    },
+    {
+      "suite": "13 money invariant (rule 12) after every scenario",
+      "kind": "assert",
+      "name": "15: the overshoot term is exactly reservedLiquidity",
+      "ok": true
+    }
+  ]
+}

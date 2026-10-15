@@ -1,0 +1,1661 @@
+/* ==========================================================================
+   MicroLend — visual identity  (v2, dashboard density)
+
+   Direction: a lending desk's advance book. Cold ink ground, warm bone text,
+   one saturated accent (brass) reserved for attention, two desaturated
+   ledger-inks (verdigris / madder) used only for loan state. Structure comes
+   from hairline rules and value steps — no card shadows, no radii.
+
+   v2 changes: the page is now a working dashboard rather than an editorial
+   spread. The first viewport at 1440x900 shows the pool totals, the supply and
+   borrow forms, and the start of the loan book. Long tables scroll inside their
+   panel instead of stretching the page.
+
+   Type system: prose is serif (Newsreader) but appears only in two short
+   places; data is tightly-set Archivo with tabular figures so money columns
+   align on the decimal point.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Vendored typefaces (SIL OFL) — ../vendor so the page renders offline.
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url('../vendor/fonts/archivo-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../vendor/fonts/newsreader-latin.woff2') format('woff2');
+}
+
+:root {
+  /* --- ground, structure, text --- */
+  --ink-900: #0a0f14;
+  --ink-800: #0e141b;
+  --ink-700: #131b24;
+  --ink-600: #1a232e;
+  --rule: #212b36;
+  --rule-strong: #33414f;
+  --bone: #e9e3d6;
+  --bone-dim: #a29c8d;
+  --bone-faint: #6f6c60;
+
+  /* --- the single accent --- */
+  --brass: #c9a24a;
+  --brass-bright: #e0bb60;
+  --brass-deep: #7d6529;
+  --brass-wash: rgba(201, 162, 74, 0.12);
+
+  /* --- ledger inks, states only --- */
+  --verdigris: #6d9b83;
+  --madder: #b2544a;
+
+  /* --- type --- */
+  --font-data: 'Archivo', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-prose: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino,
+    'Book Antiqua', Georgia, 'Times New Roman', serif;
+
+  --fs-micro: 10.5px;
+  --fs-label: 11.5px;
+  --fs-small: 12.5px;
+  --fs-body: 13.5px;
+  --fs-lead: 15px;
+  --fs-h3: 16px;
+  --fs-h2: 19px;
+  /* v1 was clamp(58px, 8.2vw, 108px) — an editorial headline that pushed every
+     number below the fold. The hero is now a band, so it is a band's type size. */
+  --fs-hero: clamp(21px, 2.1vw, 29px);
+  --fs-figure: clamp(30px, 3.4vw, 44px);
+
+  --lh-tight: 1.06;
+  --lh-prose: 1.5;
+
+  /* --- rhythm (v1 went to 104px; the working scale stops at 36px) --- */
+  --space-1: 3px;
+  --space-2: 6px;
+  --space-3: 9px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 22px;
+  --space-7: 30px;
+  --space-8: 36px;
+
+  --shell: 1420px;
+  --gutter: clamp(14px, 1.8vw, 28px);
+
+  /* --- measure (line length) -------------------------------------------------
+     Deliberately in rem/ch-free absolute terms. A `ch` cap is computed from the
+     width of "0" in the element's own font, so the same number yields a very
+     different character count for Latin vs CJK copy — that is what produced a
+     half-empty column. These are generous enough for Latin prose and short
+     enough to stay readable for dense CJK. */
+  --measure-prose: 46rem;  /* running paragraphs, panel copy */
+  --measure-lead: 48rem;   /* hero standfirst, leads */
+  --measure-narrow: 34rem; /* notes, disclaimers, helper text */
+
+  /* --- dashboard geometry --- */
+  --topbar-h: 54px;
+  --panel-scroll: 264px;
+  --radius: 0;
+
+  --focus: 2px solid var(--brass);
+  --focus-offset: 2px;
+  --tap: 38px;
+}
+
+/* ==========================================================================
+   Reset and base
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background-color: var(--ink-900);
+  color: var(--bone);
+  font-family: var(--font-data);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  font-stretch: 100%;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, p, figure, dl, dd, dt { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+a {
+  color: var(--brass);
+  text-decoration-color: var(--brass-deep);
+  text-underline-offset: 2px;
+}
+a:hover { color: var(--brass-bright); }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+::selection { background: var(--brass-wash); }
+
+/* thin, unobtrusive scrollbars inside panels */
+* { scrollbar-width: thin; scrollbar-color: var(--rule-strong) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 0; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ==========================================================================
+   Topbar — compact, sticky, one row
+   ========================================================================== */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(10, 15, 20, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--topbar-h);
+  flex-wrap: wrap;
+}
+
+.brand, .topbar-brand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: var(--fs-lead);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.brand-mark, .topbar-mark {
+  color: var(--brass);
+  font-size: 15px;
+  line-height: 1;
+}
+.brand-note, .topbar-note {
+  color: var(--bone-faint);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.chain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--tap);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--rule);
+  background: var(--ink-800);
+  color: var(--bone-dim);
+  font-size: var(--fs-label);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.chain-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--bone-faint);
+  flex: 0 0 auto;
+}
+.chain-badge.is-live { color: var(--bone); border-color: var(--rule-strong); }
+.chain-badge.is-live::before { background: var(--verdigris); }
+.chain-badge.is-wrong { color: var(--madder); border-color: var(--madder); }
+.chain-badge.is-wrong::before { background: var(--madder); }
+.chain-badge.is-demo::before { background: var(--brass); }
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  background: var(--ink-700);
+  color: var(--bone);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.btn:hover:not(:disabled) { background: var(--ink-600); border-color: var(--bone-faint); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled, .btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: #14100a;
+  font-weight: 700;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--brass-bright);
+  border-color: var(--brass-bright);
+  color: #14100a;
+}
+
+.btn-ghost { background: transparent; }
+.btn-ghost:hover:not(:disabled) { background: var(--ink-700); }
+
+.btn-wallet { background: var(--ink-700); }
+.btn-wallet.is-connected { border-color: var(--verdigris); color: var(--bone); }
+
+.btn-block { width: 100%; }
+.btn-sm { min-height: 30px; padding: 0 var(--space-3); font-size: var(--fs-micro); }
+
+/* row-action button in tables */
+.btn-row {
+  min-height: 26px;
+  padding: 0 var(--space-2);
+  font-size: var(--fs-micro);
+  background: transparent;
+  border-color: var(--rule-strong);
+}
+.btn-row:hover:not(:disabled) { background: var(--ink-600); border-color: var(--brass); color: var(--brass-bright); }
+.btn-danger { border-color: var(--madder); color: #d98a80; }
+.btn-danger:hover:not(:disabled) { background: rgba(178, 84, 74, 0.14); border-color: var(--madder); color: #e8a297; }
+
+.btn.is-busy { position: relative; color: transparent; }
+.btn.is-busy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 13px; height: 13px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--bone);
+  animation: ml-spin 700ms linear infinite;
+}
+.btn-primary.is-busy::after { color: #14100a; }
+@keyframes ml-spin { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+   Mode banner + runtime note
+   ========================================================================== */
+
+.mode-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--gutter);
+  background: linear-gradient(90deg, var(--brass-wash), transparent 70%);
+  border-bottom: 1px solid var(--rule);
+  color: var(--bone-dim);
+  font-size: var(--fs-label);
+  line-height: 1.4;
+}
+.mode-banner[hidden] { display: none; }
+.mode-banner strong { color: var(--brass-bright); font-weight: 700; letter-spacing: 0.03em; }
+.mode-banner.is-demo strong { color: var(--brass-bright); }
+
+.offline-note {
+  padding: var(--space-2) 0;
+  color: var(--madder);
+  font-size: var(--fs-label);
+}
+
+/* ==========================================================================
+   Hero — a band, not a spread. Headline + utilisation instrument side by side.
+   ========================================================================== */
+
+.hero {
+  display: grid;
+  /* the copy column gets the larger share; the instrument is capped so it cannot
+     starve the headline */
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.85fr);
+  gap: var(--space-5) var(--space-6);
+  align-items: center;
+  padding: var(--space-5) 0 var(--space-4);
+  border-bottom: 1px solid var(--rule);
+}
+
+.hero-copy { min-width: 0; max-width: none; }
+
+.hero-title {
+  font-family: var(--font-prose);
+  font-size: var(--fs-hero);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  color: var(--bone);
+  /* No `ch` cap: a ch unit is the width of "0" in the *current* font, so a
+     34ch cap on a serif headline rendered ~13 CJK characters per line and left
+     most of the column empty. The grid column is the correct measure here. */
+  max-width: none;
+  text-wrap: pretty;
+}
+
+.hero-standfirst {
+  margin-top: var(--space-2);
+  font-size: var(--fs-small);
+  line-height: var(--lh-prose);
+  color: var(--bone-dim);
+  /* comfortable reading measure that also holds when the copy is CJK */
+  max-width: var(--measure-lead);
+  text-wrap: pretty;
+}
+
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+}
+.hero-fact {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+  letter-spacing: 0.02em;
+}
+.hero-fact b, .hero-fact strong {
+  color: var(--bone);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- utilisation instrument --- */
+
+.instrument {
+  border: 1px solid var(--rule);
+  background: var(--ink-800);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  min-width: 0;
+}
+
+.instrument-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.instrument-title {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+}
+.instrument-flag {
+  font-size: var(--fs-micro);
+  color: var(--madder);
+}
+.instrument-flag[hidden] { display: none; }
+
+.instrument-figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 var(--space-3);
+  flex-wrap: wrap;
+}
+.instrument-figure > :first-child {
+  font-size: var(--fs-figure);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--bone);
+}
+.instrument-note {
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+}
+
+.gauge { margin-top: var(--space-2); }
+.gauge-track {
+  position: relative;
+  height: 9px;
+  background: var(--ink-700);
+  border: 1px solid var(--rule);
+}
+.gauge-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: linear-gradient(90deg, var(--brass-deep), var(--brass));
+  transition: width 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.gauge-marker {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--bone);
+  left: 0;
+  transition: left 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.gauge-scale {
+  position: relative;
+  height: 14px;
+  margin-top: 3px;
+}
+.gauge-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 4px;
+  background: var(--rule-strong);
+  font-size: 9px;
+  color: var(--bone-faint);
+  padding-top: 5px;
+  transform: translateX(-50%);
+}
+.gauge-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  font-size: var(--fs-micro);
+  color: var(--bone-dim);
+}
+.gauge-legend b, .gauge-legend strong { color: var(--bone); font-weight: 600; }
+
+/* ==========================================================================
+   KPI strip — dense tiles, one row
+   ========================================================================== */
+
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border: 1px solid var(--rule);
+  border-top: 0;
+  background: var(--ink-800);
+}
+
+.kpi {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border-right: 1px solid var(--rule);
+}
+.kpi:last-child { border-right: 0; }
+
+.kpi-label {
+  display: block;
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kpi-value {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.kpi-value.is-long { font-size: var(--fs-small); }
+.kpi-note {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kpi.is-alert .kpi-value { color: var(--madder); }
+.kpi.is-good .kpi-value { color: var(--verdigris); }
+.kpi.is-flashing { animation: ml-flash 900ms ease-out; }
+@keyframes ml-flash {
+  0% { background: var(--brass-wash); }
+  100% { background: transparent; }
+}
+
+/* ==========================================================================
+   Panels
+   ========================================================================== */
+
+main { padding-bottom: var(--space-6); }
+
+.panel-row {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  align-items: start;
+}
+.panel-row-supply { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+.panel-row-lower { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--rule);
+  background: var(--ink-800);
+}
+.panel + .panel { margin-top: 0; }
+.panel-wide { grid-column: 1 / -1; }
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--rule);
+  background: var(--ink-900);
+}
+.panel-title {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--bone);
+  white-space: nowrap;
+}
+.panel-rule {
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--rule);
+  min-width: var(--space-3);
+}
+.panel-meta {
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+  letter-spacing: 0.02em;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* values like "12.5 ETH available to lend" and "owner 0x90F8…c9C1" must not be
+     clipped in a two-column row */
+  max-width: 58%;
+}
+
+.panel-body {
+  padding: var(--space-4);
+  min-width: 0;
+}
+.panel-body-flush { padding: 0; }
+
+/* long tables scroll inside their panel rather than stretching the page */
+.panel-scroll {
+  max-height: var(--panel-scroll);
+  overflow: auto;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+.form { display: grid; gap: var(--space-3); }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: var(--space-3);
+}
+
+.field { display: grid; gap: 4px; min-width: 0; }
+.field-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+}
+.field-label .unit { color: var(--bone-faint); font-weight: 500; text-transform: none; letter-spacing: 0; }
+
+.input, .field input[type='text'], .field input[type='number'], .field select, .field textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  background: var(--ink-700);
+  color: var(--bone);
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+.input:hover, .field input:hover, .field select:hover { border-color: var(--bone-faint); }
+.input:focus, .field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--brass);
+  background: var(--ink-600);
+}
+.input::placeholder { color: var(--bone-faint); }
+.input[aria-invalid='true'], .field input[aria-invalid='true'] { border-color: var(--madder); }
+
+.field-hint {
+  font-size: var(--fs-micro);
+  line-height: 1.35;
+  color: var(--bone-faint);
+}
+.field-hint.is-error { color: var(--madder); }
+.field-hint.is-good { color: var(--verdigris); }
+
+.field-note {
+  font-size: var(--fs-micro);
+  color: var(--bone-dim);
+  padding-top: 2px;
+  max-width: var(--measure-prose);
+}
+
+.field-row { display: flex; gap: var(--space-2); align-items: flex-end; flex-wrap: wrap; }
+.field-row > .field { flex: 1 1 140px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  color: var(--bone-dim);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--brass); color: var(--brass-bright); }
+.chip-inline { justify-self: start; }
+.chip.is-active { background: var(--brass-wash); border-color: var(--brass); color: var(--brass-bright); }
+
+/* live quote block inside the borrow panel */
+.quote {
+  border: 1px solid var(--rule);
+  background: var(--ink-900);
+  padding: var(--space-3);
+  display: grid;
+  gap: 3px;
+}
+.quote-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--fs-small);
+}
+.quote-row + .quote-row { border-top: 1px dotted var(--rule); padding-top: 3px; }
+.quote-row dt, .quote-row .quote-key { color: var(--bone-faint); font-size: var(--fs-micro); }
+.quote-row dd, .quote-row .quote-val {
+  margin: 0;
+  color: var(--bone);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.quote-row.is-total dd, .quote-row.is-total .quote-val { color: var(--brass-bright); }
+
+/* ==========================================================================
+   Tables — the loan book, history, parameters
+   ========================================================================== */
+
+.table-wrap { width: 100%; overflow-x: auto; }
+
+table.data, .table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+}
+table.data caption, .table caption {
+  text-align: left;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+}
+table.data th, .table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ink-900);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--rule-strong);
+  text-align: left;
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+  white-space: nowrap;
+}
+table.data td, .table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--rule);
+  color: var(--bone);
+  vertical-align: middle;
+}
+table.data tbody tr:hover td, .table tbody tr:hover td { background: var(--ink-700); }
+table.data tbody tr:last-child td, .table tbody tr:last-child td { border-bottom: 0; }
+table.data td.num, .table td.num, table.data th.num, .table th.num { text-align: right; }
+table.data td.actions, .table td.actions { text-align: right; white-space: nowrap; }
+table.data td.actions .btn-row + .btn-row, .table td.actions .btn-row + .btn-row { margin-left: 4px; }
+
+.empty-state, .table-empty {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--bone-faint);
+  font-size: var(--fs-small);
+}
+
+/* status pills — colour AND the word, never colour alone */
+.pill, .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px var(--space-2);
+  border: 1px solid var(--rule-strong);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bone-dim);
+  white-space: nowrap;
+}
+.pill::before, .status-pill::before {
+  content: '';
+  width: 5px; height: 5px;
+  background: currentColor;
+}
+.pill-active, .status-active { color: var(--verdigris); border-color: var(--verdigris); }
+.pill-pending, .status-pending { color: var(--brass); border-color: var(--brass-deep); }
+.pill-repaid, .status-repaid { color: var(--bone-dim); }
+.pill-liquidated, .status-liquidated,
+.pill-overdue, .status-overdue,
+.pill-cancelled, .status-cancelled { color: var(--madder); border-color: var(--madder); }
+
+.overdue-flag { color: var(--madder); font-size: var(--fs-micro); font-weight: 600; }
+
+.mono, .hash {
+  font-family: var(--font-data);
+  font-size: var(--fs-micro);
+  color: var(--bone-dim);
+  overflow-wrap: anywhere;
+}
+.hash a { color: var(--bone-dim); }
+.hash a:hover { color: var(--brass-bright); }
+
+/* ==========================================================================
+   Summary / position statement — dotted leaders, double rule, tabular money
+   ========================================================================== */
+
+.summary { display: grid; gap: 2px; }
+.summary-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--fs-small);
+}
+.summary-row .k { color: var(--bone-faint); white-space: nowrap; }
+.summary-row .leader {
+  flex: 1 1 auto;
+  border-bottom: 1px dotted var(--rule-strong);
+  transform: translateY(-3px);
+  min-width: var(--space-4);
+}
+.summary-row .v { color: var(--bone); font-weight: 600; white-space: nowrap; }
+.summary-row.is-total {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--bone-faint);
+  border-bottom: 3px double var(--bone-faint);
+  padding-bottom: var(--space-2);
+  font-size: var(--fs-lead);
+}
+.summary-row.is-total .v { color: var(--brass-bright); }
+.summary-row.is-total .k { color: var(--bone); }
+
+/* ==========================================================================
+   Toasts
+   ========================================================================== */
+
+.toast-stack, .toasts {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  z-index: 60;
+  display: grid;
+  gap: var(--space-2);
+  max-width: min(360px, calc(100vw - 2 * var(--gutter)));
+}
+.toast {
+  border: 1px solid var(--rule-strong);
+  border-left: 3px solid var(--brass);
+  background: var(--ink-700);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--bone);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.toast a { color: var(--brass-bright); }
+.toast.is-error { border-left-color: var(--madder); }
+.toast.is-success { border-left-color: var(--verdigris); }
+.toast.is-leaving { opacity: 0; transform: translateY(6px); }
+
+/* ==========================================================================
+   Modal / confirm dialog
+   ========================================================================== */
+
+.modal-backdrop, .scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(6, 9, 12, 0.74);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+}
+.modal-backdrop[hidden], .scrim[hidden] { display: none; }
+
+.modal, .dialog {
+  width: min(430px, 100%);
+  border: 1px solid var(--rule-strong);
+  background: var(--ink-800);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+.modal.is-open, .dialog.is-open { display: grid; }
+.modal-title, .dialog-title {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  color: var(--bone);
+}
+.modal-body, .dialog-body {
+  font-size: var(--fs-small);
+  color: var(--bone-dim);
+  line-height: var(--lh-prose);
+}
+.modal-actions, .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.footer {
+  margin-top: var(--space-6);
+  border-top: 1px solid var(--rule);
+  background: var(--ink-800);
+}
+.footer-inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4) var(--space-6);
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-5);
+}
+.footer-title {
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+  margin-bottom: var(--space-2);
+}
+.footer-col { min-width: 0; }
+.footer-line {
+  font-size: var(--fs-small);
+  color: var(--bone-dim);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.footer-line + .footer-line { margin-top: 3px; }
+.footer-disclaimer { color: var(--bone-faint); font-size: var(--fs-micro); }
+
+/* ledger check line — proves cash == free liquidity + collateral + fees */
+.ledger-check {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--fs-micro);
+  color: var(--bone-dim);
+}
+.ledger-check b, .ledger-check strong { color: var(--bone); font-weight: 600; }
+.ledger-check.is-ok b:last-child { color: var(--verdigris); }
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 1180px) {
+  .kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi:nth-child(3n) { border-right: 0; }
+  .kpi:nth-child(-n + 3) { border-bottom: 1px solid var(--rule); }
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .hero-title { max-width: none; }
+}
+
+@media (max-width: 980px) {
+  .panel-row-supply, .panel-row-lower { grid-template-columns: minmax(0, 1fr); }
+  :root { --panel-scroll: none; }
+}
+
+@media (max-width: 620px) {
+  :root { --gutter: 12px; --fs-hero: 21px; }
+  .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi:nth-child(2n) { border-right: 0; }
+  .kpi { border-bottom: 1px solid var(--rule); }
+  .topbar-inner { min-height: auto; padding-block: var(--space-2); }
+  .panel-meta { max-width: 100%; }
+}
+
+/* ==========================================================================
+   Motion preferences
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* one orchestrated settle on load, nothing more */
+@media (prefers-reduced-motion: no-preference) {
+  .hero, .kpi-strip, .panel-row { animation: ml-settle 360ms ease-out backwards; }
+  .kpi-strip { animation-delay: 60ms; }
+  .panel-row { animation-delay: 110ms; }
+  @keyframes ml-settle {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  :root { --panel-scroll: none; }
+  body { background: #fff; color: #111; }
+  .topbar, .mode-banner, .toast-stack, .toasts, .modal-backdrop, .scrim, .btn { display: none !important; }
+  .panel, .kpi-strip, .instrument { border-color: #bbb; background: #fff; }
+  .kpi-value, .panel-title, .hero-title, table.data td { color: #111; }
+  .panel-scroll { max-height: none; overflow: visible; }
+  table.data th { background: #fff; color: #333; position: static; }
+  a { color: #111; text-decoration: none; }
+}
+
+/* ==========================================================================
+   v2 additions — the remaining markup surface (receipts, statement, ledger
+   table furniture, segmented filter, skeletons, admin block, utilities).
+   Written after cross-checking every class in index.html and the runtime
+   classes added from JS, so nothing in the markup is left unstyled.
+   ========================================================================== */
+
+/* --- skip link + noscript --- */
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -60px;
+  z-index: 100;
+  padding: var(--space-2) var(--space-3);
+  background: var(--brass);
+  color: #14100a;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 140ms ease;
+}
+.skip-link:focus { top: var(--space-2); color: #14100a; }
+
+.noscript {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--madder);
+  border-left-width: 3px;
+  background: var(--ink-800);
+  color: var(--bone);
+  font-size: var(--fs-small);
+}
+
+/* --- brand lockup --- */
+.brand-text { display: grid; gap: 0; line-height: 1.1; }
+.brand-name { font-weight: 700; font-size: var(--fs-lead); letter-spacing: -0.01em; color: var(--bone); }
+.brand-sub { font-size: var(--fs-micro); color: var(--bone-faint); letter-spacing: 0.05em; text-transform: uppercase; }
+.chain-dot {
+  width: 7px; height: 7px;
+  background: var(--bone-faint);
+  flex: 0 0 auto;
+  align-self: center;
+}
+.chain-dot.is-live { background: var(--verdigris); }
+.chain-dot.is-demo { background: var(--brass); }
+.chain-dot.is-wrong { background: var(--madder); }
+
+/* --- buttons: quiet + segmented filter --- */
+.btn-quiet {
+  min-height: 28px;
+  padding: 0 var(--space-2);
+  border-color: transparent;
+  background: transparent;
+  color: var(--bone-dim);
+  font-size: var(--fs-micro);
+}
+.btn-quiet:hover:not(:disabled) { background: var(--ink-700); border-color: var(--rule-strong); color: var(--bone); }
+
+.segmented, .segmented-inline {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--rule-strong);
+  background: var(--ink-900);
+}
+.segmented-item {
+  min-height: 28px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-right: 1px solid var(--rule);
+  background: transparent;
+  color: var(--bone-dim);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.segmented-item:last-child { border-right: 0; }
+.segmented-item:hover { background: var(--ink-700); color: var(--bone); }
+.segmented-item.is-active, .segmented-item[aria-pressed='true'] {
+  background: var(--brass-wash);
+  color: var(--brass-bright);
+  box-shadow: inset 0 -2px 0 var(--brass);
+}
+.history-filter { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+
+/* --- forms: captions, units, preset chips, errors --- */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+  gap: var(--space-3);
+}
+.field-grid-params { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+.field-input { position: relative; display: flex; align-items: stretch; min-width: 0; }
+.field-input input { flex: 1 1 auto; min-width: 0; }
+.field-unit, .figure-unit {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--rule-strong);
+  border-left: 0;
+  background: var(--ink-900);
+  color: var(--bone-faint);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.field-presets { display: flex; gap: var(--space-1); flex-wrap: wrap; margin-top: 2px; }
+
+.form-error, .form-error-block, .error-block {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--madder);
+  border-left-width: 3px;
+  background: rgba(178, 84, 74, 0.1);
+  color: #e8a297;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+}
+.form-error[hidden] { display: none; }
+
+/* --- figures inside the instrument --- */
+.figure-value {
+  font-size: var(--fs-figure);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- receipts (deposit / borrow / repay confirmations) --- */
+.receipt {
+  border: 1px solid var(--rule-strong);
+  background: var(--ink-900);
+  padding: var(--space-3);
+  display: grid;
+  gap: 2px;
+}
+.receipt-quote {
+  border-left: 3px solid var(--brass);
+  border-color: var(--rule);
+  border-left-color: var(--brass);
+}
+
+/* --- segmented summary lists (dotted leaders) --- */
+.statement { display: grid; gap: 2px; }
+.statement-total {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--bone-faint);
+  border-bottom: 3px double var(--bone-faint);
+  padding-bottom: var(--space-2);
+  font-size: var(--fs-lead);
+}
+.statement-memo {
+  margin-top: var(--space-2);
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+  line-height: 1.45;
+}
+
+/* --- ledger table (loan book / history) furniture --- */
+.table-scroll {
+  width: 100%;
+  max-height: var(--panel-scroll);
+  overflow: auto;
+}
+
+.col-id    { width: 4ch; }
+.col-rate  { width: 8ch; }
+.col-term  { width: 7ch; }
+.col-time  { width: 14ch; }
+.col-tx    { width: 12ch; }
+.col-detail{ min-width: 20ch; }
+.col-actions { width: 1%; white-space: nowrap; }
+
+table.data td.num, table.data th.num,
+table.data td.col-rate, table.data td.col-term,
+ .table td.num,  .table th.num { text-align: right; }
+
+/* the footer's ledger check row */
+.ledger {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--fs-micro);
+  color: var(--bone-dim);
+}
+.ledger-key { color: var(--bone-faint); }
+.ledger-key-available, .ledger-key-borrowed { color: var(--bone-dim); }
+
+/* --- admin block --- */
+.admin-lock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--rule-strong);
+  color: var(--bone-faint);
+  font-size: var(--fs-small);
+}
+.admin-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+/* --- audit / debug drawer --- */
+.audit {
+  margin-top: var(--space-4);
+  border: 1px solid var(--rule);
+  background: var(--ink-800);
+}
+.audit-title {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+  cursor: pointer;
+}
+.audit-body {
+  max-height: var(--panel-scroll);
+  overflow: auto;
+  padding: var(--space-3);
+  font-size: var(--fs-micro);
+  color: var(--bone-dim);
+  line-height: 1.5;
+}
+.audit-footer {
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+}
+.audit:not(.is-open) .audit-body,
+.audit:not(.is-open) .audit-footer { display: none; }
+.audit.is-open .audit-title { color: var(--bone); }
+
+/* --- loading skeletons --- */
+.skeleton {
+  display: block;
+  min-height: 1em;
+  background: linear-gradient(90deg, var(--ink-700), var(--ink-600), var(--ink-700));
+  background-size: 200% 100%;
+  color: transparent !important;
+  animation: ml-shimmer 1.2s linear infinite;
+}
+@keyframes ml-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background: var(--ink-700); }
+}
+
+/* --- history rows: column alignment on the decimal point --- */
+.ledger-history td { font-size: var(--fs-small); }
+.ledger-history td.num, .ledger-history th.num { font-variant-numeric: tabular-nums; }
+
+/* --- narrow panels (position statement) get a tighter internal rhythm --- */
+.panel-narrow .panel-body { padding: var(--space-3) var(--space-4); }
+.panel-narrow .summary-row { font-size: var(--fs-small); }
+
+/* ==========================================================================
+   Modal host — #modal-root is an ID, and ui.js injects the backdrop, card and
+   confirm table into it. Styled here so confirmations are a real overlay
+   instead of unstyled markup appended at the end of the document.
+   ========================================================================== */
+
+#modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+}
+#modal-root[hidden] { display: none; }
+
+#modal-root .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 9, 12, 0.76);
+  backdrop-filter: blur(2px);
+  animation: ml-fade 160ms ease-out;
+}
+@keyframes ml-fade { from { opacity: 0; } to { opacity: 1; } }
+
+#modal-root .modal {
+  position: relative;
+  width: min(440px, 100%);
+  max-height: calc(100vh - 2 * var(--gutter));
+  overflow: auto;
+  border: 1px solid var(--rule-strong);
+  border-top: 2px solid var(--brass);
+  background: var(--ink-800);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  animation: ml-rise 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes ml-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.modal-kicker {
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.modal-field { display: grid; gap: 4px; }
+.modal-field label {
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+}
+.modal-field .field-input { display: flex; align-items: stretch; }
+.modal-field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  background: var(--ink-700);
+  color: var(--bone);
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
+}
+.modal-field input:focus { outline: none; border-color: var(--brass); background: var(--ink-600); }
+
+/* key -> value rows inside a confirmation (dotted leaders, tabular money) */
+.confirm-table {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--rule);
+  background: var(--ink-900);
+  padding: var(--space-3);
+}
+.confirm-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--fs-small);
+}
+.confirm-key { color: var(--bone-faint); white-space: nowrap; }
+.confirm-value {
+  margin-left: auto;
+  color: var(--bone);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.modal-warning {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--brass-deep);
+  border-left-width: 3px;
+  background: var(--brass-wash);
+  color: var(--brass-bright);
+  font-size: var(--fs-small);
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   Classes produced by the JS renderers (banner, wallet chip, loan ids, empty
+   states, transaction references, loading rows). Verified against class
+   strings in app.js / ui.js so nothing rendered at runtime is unstyled.
+   ========================================================================== */
+
+.banner-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+}
+.banner-text { flex: 1 1 320px; min-width: 0; }
+.banner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px var(--space-2);
+  border: 1px solid var(--brass-deep);
+  background: var(--brass-wash);
+  color: var(--brass-bright);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.banner-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.demo-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border: 1px solid var(--brass-deep);
+  color: var(--brass-bright);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* connected-wallet chip in the topbar */
+.wallet-identity { display: grid; gap: 0; line-height: 1.15; text-align: right; }
+.wallet-balance {
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* loan id / transaction reference cells */
+.loan-id {
+  font-weight: 700;
+  color: var(--brass-bright);
+  font-variant-numeric: tabular-nums;
+}
+.tx-ref, .cell-sub {
+  display: block;
+  font-size: var(--fs-micro);
+  color: var(--bone-faint);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.cell-sub { margin-top: 1px; }
+
+/* empty states rendered by the JS tables */
+.empty, .empty-state {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+.empty-title {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--bone-dim);
+}
+.empty-body {
+  margin-top: 3px;
+  font-size: var(--fs-small);
+  color: var(--bone-faint);
+  line-height: 1.45;
+}
+
+/* skeletons used while a panel loads */
+.skeleton-row td { padding-block: var(--space-3); }
+.skeleton-row .skeleton { min-height: 12px; }
+
+/* admin actor selector */
+.actor-select {
+  min-height: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  background: var(--ink-700);
+  color: var(--bone);
+  font-size: var(--fs-small);
+}
+.actor-select:focus { outline: none; border-color: var(--brass); }
+
+/* ==========================================================================
+   Measure and line breaking
+   --------------------------------------------------------------------------
+   The v1 stylesheet capped a serif headline at 34ch and prose at 62ch. A ch unit
+   is measured from "0" in the element's own font, so those caps produced roughly
+   half a column of text followed by empty space once the copy was set in a
+   wider face or in CJK. Nothing here uses ch: blocks are bounded in rem, and
+   `text-wrap: pretty` avoids a single orphaned word on the last line without
+   the ragged half-lines that `balance` produced on a short headline.
+   ========================================================================== */
+
+body { text-wrap: pretty; }
+
+.hero-title, .hero-standfirst, .panel-title,
+.mode-banner, .field-note, .empty-body, .modal-body,
+.summary-row, .quote-row, .statement-memo { text-wrap: pretty; }
+
+/* bounded running copy */
+.field-hint, .modal-body, .empty-body, .statement-memo, .banner-text {
+  max-width: var(--measure-prose);
+}
+
+/* footer columns read as short definitions, so they get a narrower measure */
+.footer-line, .footer-disclaimer { max-width: var(--measure-narrow); }
+
+@media (max-width: 1180px) {
+  .footer-line, .footer-disclaimer { max-width: none; }
+}
+
+@media (max-width: 980px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .hero-title { max-width: none; }
+  .hero-standfirst, .field-hint, .modal-body, .empty-body { max-width: none; }
+}
+
+/* The hero headline is prose, not data: allow CJK to break between characters
+   and Latin words at word boundaries, without hyphenation artefacts. */
+.hero-title, .hero-standfirst { word-break: normal; overflow-wrap: break-word; }
+
+/* ==========================================================================
+   Table sizing — measured fixes
+   --------------------------------------------------------------------------
+   The loan book rendered its Status column 34.6px wide and its Loan column
+   27.1px wide, so "Overdue" stacked one letter per line and the header wrapped
+   to "L o a n". Cause: `width` on a cell in a table with automatic layout is
+   only a suggestion, and the browser gave the space to the money columns
+   instead. These rules give every column a real minimum and stop the text from
+   breaking mid-word.
+   ========================================================================== */
+
+table.data, .table { table-layout: auto; }
+
+table.data th, .table th { white-space: nowrap; }
+table.data td, .table td { white-space: nowrap; }
+
+/* the one column allowed to wrap: free-text detail */
+table.data td.col-detail, .table td.col-detail,
+table.data td.wrap, .table td.wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 16ch;
+}
+
+/* column minimums, in px so they cannot be squeezed away */
+.col-id      { width: 92px;  min-width: 92px; }
+.col-status  { width: 104px; min-width: 104px; }
+.col-rate    { width: 72px;  min-width: 72px; }
+.col-term    { width: 78px;  min-width: 78px; }
+.col-time    { width: 118px; min-width: 118px; }
+.col-tx      { width: 104px; min-width: 104px; }
+.col-detail  { min-width: 180px; }
+.col-actions { width: 1%; min-width: 150px; white-space: nowrap; }
+td.num, th.num { min-width: 74px; }
+
+/* secondary lines inside a cell never force the column wider */
+.loan-id { white-space: nowrap; }
+.cell-sub { white-space: normal; overflow-wrap: anywhere; }
+td > small, td .cell-sub { display: block; }
+
+/* truncate an over-long reference rather than stretching the table */
+.col-tx a, .col-tx span, .hash { display: inline-block; max-width: 100%; }
+
+/* flex children must be allowed to shrink below their content width,
+   otherwise an input can overflow its field box (measured: 124 < 179) */
+.field, .field-input, .field-row, .form, .panel-body, .panel { min-width: 0; }
+.field-input input, .field input, .input { min-width: 0; width: 100%; }
+
+/* the demo banner is 92px of chrome above the hero; tighten it so real content
+   reaches the first viewport sooner */
+.mode-banner { padding-block: var(--space-1); }
+.mode-banner .banner-inner { gap: var(--space-2) var(--space-3); }
+.mode-banner .banner-text { font-size: var(--fs-micro); line-height: 1.4; }
+.banner-actions .btn { min-height: 28px; padding: 0 var(--space-2); font-size: var(--fs-micro); }
+
+/* the history Event column was 31px wide, so state words stacked vertically */
+.col-event { width: 92px; min-width: 92px; }
+
+/* --------------------------------------------------------------------------
+   History table sizing (measured).
+   The Event column rendered 56px wide, so "Loan requested" broke mid-word, and
+   the Reference cell held a DEMO DATA badge beside a hash in 102px, so the hash
+   was cut. The badge now stacks above the hash, and the columns are sized from
+   the measured text widths. The table must fit its panel with no h-scroll.
+   -------------------------------------------------------------------------- */
+#panel-history td, #panel-history th { padding-inline: var(--space-2); }
+.col-event   { width: 96px;  min-width: 96px; }
+.col-time    { width: 104px; min-width: 104px; }
+.col-tx      { width: 96px;  min-width: 96px; }
+.col-detail  { min-width: 150px; }
+
+/* the demo badge is a label for the hash, not a sibling competing for width */
+.demo-tag { display: block; margin-bottom: 1px; }
+.tx-ref { display: block; }
+
+/* secondary line inside the history Event cell */
+#panel-history .cell-sub { display: block; margin-top: 1px; }
+
+/* Event column measured at 84px of usable width while "Requested" needs ~95px, so it
+   broke mid-word. Give the column the width the longest state word actually needs and
+   take it from Detail, which is free text and wraps cleanly. */
+.col-event  { width: 112px; min-width: 112px; }
+.col-detail { min-width: 132px; }
+/* do NOT nowrap every history cell: Detail is free text and wrapping it is what
+   lets the table fit its 562px panel (forcing it measured +629px of h-scroll). */
+
+/* the loan book's Actions column is the last one; a little trailing padding keeps the
+   buttons off the panel edge instead of leaving a gutter-sized gap on the right */
+#panel-loans td.col-actions, #panel-loans th.col-actions { padding-right: var(--space-4); }
+#panel-loans td.col-id { padding-left: var(--space-4); }
+#panel-loans th.col-id { padding-left: var(--space-4); }

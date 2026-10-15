@@ -1,0 +1,56 @@
+﻿record: deployment.local.json   pool: 0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab   chainId: 31337
+api  : http://127.0.0.1:5000/api   rpc: http://127.0.0.1:8545
+note : the pool address is nonce-dependent, so it is read from the record, never assumed
+record: deployment.local.json   pool: 0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab   chainId: 31337
+api  : http://127.0.0.1:5000/api   rpc: http://127.0.0.1:8545
+note : the pool address is nonce-dependent, so it is read from the record, never assumed
+== 0. the record's contract is really deployed on this chain ==
+  PASS  the record's address holds contract code on the live chain
+  PASS  the deployment tx in the record exists on this chain
+== 1. health / config ==
+  PASS  GET /health is 200
+  PASS  health reports chainMode=rpc
+  PASS  health reports rpcReachable
+  PASS  health sees blockNumber > 0
+  PASS  GET /config is 200
+  PASS  config ABI has 102 entries
+  PASS  the running backend targets the contract in the record
+== 2. auth: nonce -> personal_sign -> verify ==
+  PASS  POST /auth/nonce is 201
+  PASS  nonce response carries a SIWE-style message
+  PASS  derived signer matches the chain's account 0
+  PASS  POST /auth/verify is 200
+  PASS  verify returns a bearer token
+  PASS  GET /auth/session authenticates the token
+== 3. index a REAL deposit transaction from the live chain ==
+  PASS  deposit receipt exists on the local chain
+  PASS  bootstrap deposit emits sharesMinted == amount - 1 (dead share parked)
+  PASS  second deposit emits sharesMinted == amount exactly
+  PASS  sync of a tx by a DIFFERENT wallet is rejected (sender must match the session)
+  PASS  derived second signer matches the chain's account 1
+  PASS  POST /transactions/sync is 200 (or 409 if a previous run already indexed it)
+  PASS  sync decoded the LiquidityDeposited event
+  PASS  sync recorded the real on-chain amount (5 ETH)
+  PASS  replaying the same txHash is rejected as a conflict
+== 4. read models ==
+  PASS  GET /pool is 200
+  PASS  pool.onChain reflects live liquidity of 25 ETH
+  PASS  pool.onChain reflects 1 ETH reserved
+  PASS  pool.onChain reflects loanCount 2
+  PASS  GET /transactions is 200
+  PASS  the indexed deposit is retrievable
+  PASS  the indexed row carries the decoded 5 ETH amount
+  PASS  GET /positions/<address> is 200
+  PASS  GET /loans is 200
+  note  : /loans total = 0 (0 expected: the 2 loans were created directly on-chain, not via the API)
+== 5. negative cases ==
+  PASS  write without a token is 401
+  PASS  unknown tx hash is rejected 4xx
+  PASS  unknown tx hash returns the error envelope
+  PASS  malformed amount is a field-level VALIDATION_ERROR
+  PASS  amount mismatch against the chain receipt is rejected
+== 6. known limitation: bootstrap deposit cannot be indexed ==
+  info  : first-ever deposit sync -> HTTP 400 (VALIDATION_ERROR)
+  info  : reason -> The decoded event does not match the submitted payload: sharesMinted the chain emitted 19999999999999999999, the request said 20000000000000000000
+
+RESULT: 38 passed, 0 failed

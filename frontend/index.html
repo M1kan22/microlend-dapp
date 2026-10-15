@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MicroLend — peer-to-pool micro-lending on Sepolia</title>
+<meta name="description" content="MicroLend is a peer-to-pool micro-lending protocol on Ethereum Sepolia. Suppliers deposit ETH for pool shares, borrowers post collateral for simple-interest micro-loans, and overdue loans are liquidated by anyone.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0f14">
+
+<link rel="stylesheet" href="css/styles.css">
+
+<!-- ethers v6, vendored locally so the page works with no network at all.
+     The CDN fallback is only requested if the vendored file actually failed: a
+     parser-inserted classic script with a src is fetched and executed before the
+     next inline script runs, so `window.ethers` is already defined here when the
+     local copy loaded. Nothing uses document.write, which would be ignored or
+     destructive on the double-click (file://) path. No integrity attribute is
+     used, so a CDN version bump cannot break the page; the onerror guards record
+     the failure and the UI reports it honestly. Demo mode never needs ethers. -->
+<script src="vendor/ethers.umd.min.js" onerror="window.__ML_ETHERS_LOCAL_FAILED = true"></script>
+<script>
+(function () {
+  if (window.ethers || window.__ML_ETHERS_LOCAL_FAILED !== true) return; /* vendored copy loaded (or still pending) */
+  var fallback = document.createElement('script');
+  fallback.src = 'https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js';
+  fallback.onerror = function () { window.__ML_ETHERS_CDN_FAILED = true; };
+  document.head.appendChild(fallback);
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the dashboard</a>
+
+<header class="topbar">
+  <div class="topbar-inner shell">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">ML</span>
+      <span class="brand-text">
+        <span class="brand-name">MicroLend</span>
+        <span class="brand-sub">peer-to-pool lending desk</span>
+      </span>
+    </div>
+
+    <div class="topbar-right">
+      <p class="chain-badge" id="chain-badge" title="Network the wallet is connected to">
+        <span class="chain-dot" aria-hidden="true"></span>
+        <span data-chain-label>Not connected</span>
+      </p>
+      <button type="button" class="btn btn-wallet" id="wallet-button">
+        <span data-wallet-label>Connect wallet</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mode banner: the demo ledger controls, or a network warning when the wallet
+     is on the wrong chain. app.js swaps the contents. -->
+<div class="mode-banner" id="mode-banner" role="status" aria-live="polite"></div>
+
+<p class="offline-note shell" id="runtime-note" hidden></p>
+
+<main id="main" class="shell">
+
+  <!-- ==================================================================== -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 class="hero-title" id="hero-title">Lend ETH to the pool. Borrow against it. Repay, or be liquidated.</h1>
+      <p class="hero-standfirst">Suppliers earn the interest borrowers pay, less a 10% protocol fee. Every loan is simple
+        interest, denominated in ETH, and collateralised at 100% of principal, so the pool never depends on an
+        exchange-rate oracle.</p>
+      <dl class="hero-facts">
+        <div class="hero-fact">
+          <dt>Loan book</dt>
+          <dd data-hero="loanBook">—</dd>
+        </div>
+        <div class="hero-fact">
+          <dt>Interest terms</dt>
+          <dd data-hero="terms">—</dd>
+        </div>
+        <div class="hero-fact">
+          <dt>Liquidation rule</dt>
+          <dd data-hero="liquidation">—</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- The instrument: pool utilisation, the page's visual anchor. -->
+    <div class="instrument" id="instrument">
+      <div class="instrument-head">
+        <div>
+          <h2 class="instrument-title">Pool utilisation</h2>
+          <p class="instrument-note">Share of supplied ETH currently lent out</p>
+        </div>
+        <p class="instrument-flag" id="pool-flag" hidden></p>
+      </div>
+
+      <p class="instrument-figure">
+        <span class="figure-value" data-gauge-figure>0.0</span><span class="figure-unit">%</span>
+      </p>
+
+      <div class="gauge" id="gauge" role="img" aria-label="Pool utilisation 0 percent">
+        <div class="gauge-track">
+          <div class="gauge-fill" data-gauge-fill id="gauge-fill"></div>
+          <span class="gauge-tick" style="left:25%" aria-hidden="true"></span>
+          <span class="gauge-tick" style="left:50%" aria-hidden="true"></span>
+          <span class="gauge-tick" style="left:75%" aria-hidden="true"></span>
+          <span class="gauge-marker" id="gauge-marker" aria-hidden="true"></span>
+        </div>
+        <div class="gauge-scale" aria-hidden="true">
+          <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+        </div>
+      </div>
+
+      <dl class="gauge-legend">
+        <div>
+          <dt>Borrowed</dt>
+          <dd><span class="ledger-key ledger-key-borrowed" aria-hidden="true"></span><span data-gauge-borrowed>—</span></dd>
+        </div>
+        <div>
+          <dt>Available</dt>
+          <dd><span class="ledger-key ledger-key-available" aria-hidden="true"></span><span data-gauge-available>—</span></dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ==================================================================== -->
+  <section class="kpi-strip" aria-labelledby="kpi-heading">
+    <h2 class="visually-hidden" id="kpi-heading">Pool totals</h2>
+    <div class="kpi" data-kpi-cell="totalLiquidity">
+      <p class="kpi-value"><span data-kpi="totalLiquidity">—</span> <span class="unit">ETH</span></p>
+      <p class="kpi-label">Owed to suppliers</p>
+      <p class="kpi-note" data-kpi-note="totalLiquidity">total liquidity</p>
+    </div>
+    <div class="kpi" data-kpi-cell="availableLiquidity">
+      <p class="kpi-value"><span data-kpi="availableLiquidity">—</span> <span class="unit">ETH</span></p>
+      <p class="kpi-label">Available to borrow</p>
+      <p class="kpi-note" data-kpi-note="availableLiquidity">free liquidity today</p>
+    </div>
+    <div class="kpi" data-kpi-cell="totalBorrowed">
+      <p class="kpi-value"><span data-kpi="totalBorrowed">—</span> <span class="unit">ETH</span></p>
+      <p class="kpi-label">Lent out</p>
+      <p class="kpi-note" data-kpi-note="totalBorrowed">principal outstanding</p>
+    </div>
+    <div class="kpi" data-kpi-cell="sharePrice">
+      <p class="kpi-value"><span data-kpi="sharePrice">—</span> <span class="unit">ETH</span></p>
+      <p class="kpi-label">Share price</p>
+      <p class="kpi-note" data-kpi-note="sharePrice">per 1.00 share unit</p>
+    </div>
+    <div class="kpi" data-kpi-cell="totalInterestEarned">
+      <p class="kpi-value"><span data-kpi="totalInterestEarned">—</span> <span class="unit">ETH</span></p>
+      <p class="kpi-label">Interest charged</p>
+      <p class="kpi-note" data-kpi-note="totalInterestEarned">lifetime</p>
+    </div>
+    <div class="kpi" data-kpi-cell="totalBadDebt">
+      <p class="kpi-value"><span data-kpi="totalBadDebt">—</span> <span class="unit">ETH</span></p>
+      <p class="kpi-label">Written off</p>
+      <p class="kpi-note" data-kpi-note="totalBadDebt">bad debt, lifetime</p>
+    </div>
+  </section>
+
+  <!-- ==================================================================== -->
+  <div class="panel-row panel-row-supply">
+    <section class="panel" id="panel-supply" aria-labelledby="supply-heading">
+      <header class="panel-head">
+        <h2 class="panel-title" id="supply-heading">Supply and withdraw</h2>
+        <span class="panel-rule" aria-hidden="true"></span>
+        <span class="panel-meta" data-panel-meta="supply">—</span>
+      </header>
+
+      <div class="panel-body">
+        <form id="form-supply" class="form" novalidate>
+          <div class="segmented" role="radiogroup" aria-label="Choose an action">
+            <label class="segmented-item">
+              <input type="radio" name="supply-mode" value="deposit" checked>
+              <span>Supply</span>
+            </label>
+            <label class="segmented-item">
+              <input type="radio" name="supply-mode" value="withdraw">
+              <span>Withdraw</span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="supply-amount" data-supply-label>Amount to supply</label>
+            <div class="field-input">
+              <input type="text" id="supply-amount" name="supply-amount" inputmode="decimal"
+                     autocomplete="off" spellcheck="false" placeholder="0.0000"
+                     aria-describedby="supply-amount-hint">
+              <span class="field-unit" data-supply-unit>ETH</span>
+            </div>
+            <p class="field-hint" id="supply-amount-hint" data-supply-hint>Minimum supply is 0.000001 ETH.</p>
+          </div>
+
+          <div class="field-presets" data-supply-presets>
+            <button type="button" class="chip" data-supply-preset="25">25%</button>
+            <button type="button" class="chip" data-supply-preset="50">50%</button>
+            <button type="button" class="chip" data-supply-preset="75">75%</button>
+            <button type="button" class="chip" data-supply-preset="100">Maximum</button>
+          </div>
+
+          <dl class="receipt" data-supply-receipt>
+            <div>
+              <dt>You will receive</dt>
+              <dd data-supply="receive">—</dd>
+            </div>
+            <div>
+              <dt>Share price</dt>
+              <dd data-supply="sharePrice">—</dd>
+            </div>
+            <div>
+              <dt>Underlying ETH</dt>
+              <dd data-supply="equity">—</dd>
+            </div>
+          </dl>
+
+          <p class="form-error" data-error="supply" role="alert" hidden></p>
+          <button type="submit" class="btn btn-primary btn-block" id="supply-submit">Supply ETH</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-borrow" aria-labelledby="borrow-heading">
+      <header class="panel-head">
+        <h2 class="panel-title" id="borrow-heading">Open a loan</h2>
+        <span class="panel-rule" aria-hidden="true"></span>
+        <span class="panel-meta" data-panel-meta="borrow">—</span>
+      </header>
+
+      <div class="panel-body">
+        <form id="form-borrow" class="form" novalidate>
+          <div class="field-grid">
+            <div class="field">
+              <label for="borrow-principal">Principal</label>
+              <div class="field-input">
+                <input type="text" id="borrow-principal" name="borrow-principal" inputmode="decimal"
+                       autocomplete="off" spellcheck="false" placeholder="0.0000" aria-describedby="borrow-principal-hint">
+                <span class="field-unit">ETH</span>
+              </div>
+              <p class="field-hint" id="borrow-principal-hint" data-borrow-hint="principal">—</p>
+            </div>
+
+            <div class="field">
+              <label for="borrow-rate">Rate</label>
+              <div class="field-input">
+                <input type="text" id="borrow-rate" name="borrow-rate" inputmode="decimal"
+                       autocomplete="off" spellcheck="false" value="12.00" aria-describedby="borrow-rate-hint">
+                <span class="field-unit">% APR</span>
+              </div>
+              <p class="field-hint" id="borrow-rate-hint" data-borrow-hint="rate">—</p>
+            </div>
+
+            <div class="field">
+              <label for="borrow-duration">Term</label>
+              <div class="field-input">
+                <input type="text" id="borrow-duration" name="borrow-duration" inputmode="numeric"
+                       autocomplete="off" spellcheck="false" value="30" aria-describedby="borrow-duration-hint">
+                <span class="field-unit">days</span>
+              </div>
+              <p class="field-hint" id="borrow-duration-hint" data-borrow-hint="duration">—</p>
+            </div>
+
+            <div class="field">
+              <label for="borrow-collateral">Collateral</label>
+              <div class="field-input">
+                <input type="text" id="borrow-collateral" name="borrow-collateral" inputmode="decimal"
+                       autocomplete="off" spellcheck="false" placeholder="0.0000" aria-describedby="borrow-collateral-hint">
+                <span class="field-unit">ETH</span>
+              </div>
+              <p class="field-hint" id="borrow-collateral-hint" data-borrow-hint="collateral">—</p>
+            </div>
+          </div>
+
+          <button type="button" class="chip chip-inline" id="borrow-use-minimum">Use minimum collateral</button>
+
+          <dl class="receipt receipt-quote" data-borrow-quote>
+            <div>
+              <dt>Interest for the full term</dt>
+              <dd data-quote="interest">—</dd>
+            </div>
+            <div>
+              <dt>Repay at maturity</dt>
+              <dd data-quote="totalDue">—</dd>
+            </div>
+            <div>
+              <dt>Protocol fee on interest</dt>
+              <dd data-quote="fee">—</dd>
+            </div>
+            <div>
+              <dt>You receive now</dt>
+              <dd data-quote="payout">—</dd>
+            </div>
+            <div>
+              <dt>Due date if it activates now</dt>
+              <dd data-quote="due">—</dd>
+            </div>
+          </dl>
+
+          <p class="field-note" id="borrow-availability">—</p>
+          <p class="form-error" data-error="borrow" role="alert" hidden></p>
+          <button type="submit" class="btn btn-primary btn-block" id="borrow-submit">Request loan</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <!-- ==================================================================== -->
+  <section class="panel panel-wide" id="panel-loans" aria-labelledby="loans-heading">
+    <header class="panel-head">
+      <h2 class="panel-title" id="loans-heading">Loan book</h2>
+      <span class="panel-rule" aria-hidden="true"></span>
+      <div class="segmented segmented-inline" role="radiogroup" aria-label="Which loans to show">
+        <label class="segmented-item">
+          <input type="radio" name="loans-scope" value="mine" checked>
+          <span>My loans</span>
+        </label>
+        <label class="segmented-item">
+          <input type="radio" name="loans-scope" value="all">
+          <span>Whole book</span>
+        </label>
+      </div>
+      <span class="panel-meta" data-panel-meta="loans">—</span>
+    </header>
+
+    <div class="panel-body panel-body-flush">
+      <div class="table-scroll">
+        <table class="ledger" id="loans-table">
+          <caption class="visually-hidden">Loans, with the actions each loan's current status allows</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="col-id">Loan</th>
+              <th scope="col" class="col-status">Status</th>
+              <th scope="col" class="num">Principal</th>
+              <th scope="col" class="num">Collateral</th>
+              <th scope="col" class="num col-rate">Rate</th>
+              <th scope="col" class="num col-term">Term</th>
+              <th scope="col" class="num">Due</th>
+              <th scope="col" class="num">Owed now</th>
+              <th scope="col" class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="loans-body">
+            <tr><td colspan="9"><span class="skeleton" style="width:60%"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================================== -->
+  <div class="panel-row panel-row-lower">
+    <section class="panel panel-narrow" id="panel-position" aria-labelledby="position-heading">
+      <header class="panel-head">
+        <h2 class="panel-title" id="position-heading">Your position</h2>
+        <span class="panel-rule" aria-hidden="true"></span>
+      </header>
+      <div class="panel-body">
+        <dl class="statement" id="position-statement">
+          <div>
+            <dt>Share units held</dt>
+            <dd data-position="shares">—</dd>
+          </div>
+          <div>
+            <dt>Redeemable for</dt>
+            <dd data-position="shareValue">—</dd>
+          </div>
+          <div>
+            <dt>Collateral locked</dt>
+            <dd data-position="collateralLocked">—</dd>
+          </div>
+          <div>
+            <dt>Debt outstanding</dt>
+            <dd data-position="outstandingDebt">—</dd>
+          </div>
+          <div>
+            <dt>Active / pending loans</dt>
+            <dd data-position="loanCounts">—</dd>
+          </div>
+          <div class="statement-total">
+            <dt>Net position</dt>
+            <dd data-position="net">—</dd>
+          </div>
+          <div class="statement-memo">
+            <dt>Wallet balance</dt>
+            <dd data-position="balance">—</dd>
+          </div>
+        </dl>
+        <div class="audit" id="ledger-audit" hidden>
+          <p class="audit-title">Ledger check</p>
+          <p class="audit-body" data-audit="body">—</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-history" aria-labelledby="history-heading">
+      <header class="panel-head">
+        <h2 class="panel-title" id="history-heading">Transaction history</h2>
+        <span class="panel-rule" aria-hidden="true"></span>
+        <div class="history-filter">
+          <label class="visually-hidden" for="history-type">Filter by event type</label>
+          <select id="history-type">
+            <option value="">All events</option>
+            <option value="deposit">Supplies</option>
+            <option value="withdraw">Withdrawals</option>
+            <option value="request">Loan requests</option>
+            <option value="fund">Funding</option>
+            <option value="repay">Repayments</option>
+            <option value="liquidate">Liquidations</option>
+            <option value="cancel">Cancellations</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </header>
+      <div class="panel-body panel-body-flush">
+        <div class="table-scroll">
+          <table class="ledger ledger-history" id="history-table">
+            <caption class="visually-hidden">Transaction history, newest first</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="col-time">Time (UTC)</th>
+                <th scope="col" class="col-event">Event</th>
+                <th scope="col" class="num">Amount</th>
+                <th scope="col" class="col-detail">Detail</th>
+                <th scope="col" class="col-tx">Reference</th>
+              </tr>
+            </thead>
+            <tbody id="history-body">
+              <tr><td colspan="5"><span class="skeleton" style="width:70%"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ==================================================================== -->
+  <section class="panel panel-wide" id="panel-admin" aria-labelledby="admin-heading">
+    <header class="panel-head">
+      <h2 class="panel-title" id="admin-heading">Protocol parameters</h2>
+      <span class="panel-rule" aria-hidden="true"></span>
+      <span class="panel-meta" data-panel-meta="admin">—</span>
+    </header>
+    <div class="panel-body">
+      <p class="admin-lock" id="admin-lock">—</p>
+
+      <form id="form-params" class="form" novalidate>
+        <div class="field-grid field-grid-params">
+          <div class="field">
+            <label for="p-fee">Fee on interest (bps)</label>
+            <div class="field-input"><input type="text" id="p-fee" name="feeBps" inputmode="numeric" autocomplete="off"><span class="field-unit">bps</span></div>
+          </div>
+          <div class="field">
+            <label for="p-penalty">Liquidation penalty (bps)</label>
+            <div class="field-input"><input type="text" id="p-penalty" name="penaltyBps" inputmode="numeric" autocomplete="off"><span class="field-unit">bps</span></div>
+          </div>
+          <div class="field">
+            <label for="p-late">Late fee per 30 days (bps)</label>
+            <div class="field-input"><input type="text" id="p-late" name="lateFeeBps" inputmode="numeric" autocomplete="off"><span class="field-unit">bps</span></div>
+          </div>
+          <div class="field">
+            <label for="p-collateral">Minimum collateral (bps)</label>
+            <div class="field-input"><input type="text" id="p-collateral" name="minCollateralBps" inputmode="numeric" autocomplete="off"><span class="field-unit">bps</span></div>
+          </div>
+          <div class="field">
+            <label for="p-maxrate">Maximum rate (bps)</label>
+            <div class="field-input"><input type="text" id="p-maxrate" name="maxRateBps" inputmode="numeric" autocomplete="off"><span class="field-unit">bps</span></div>
+          </div>
+          <div class="field">
+            <label for="p-maxduration">Maximum term (days)</label>
+            <div class="field-input"><input type="text" id="p-maxduration" name="maxDurationDays" inputmode="numeric" autocomplete="off"><span class="field-unit">days</span></div>
+          </div>
+          <div class="field">
+            <label for="p-minloan">Minimum principal (wei)</label>
+            <div class="field-input"><input type="text" id="p-minloan" name="minLoanPrincipal" inputmode="numeric" autocomplete="off"><span class="field-unit">wei</span></div>
+          </div>
+          <div class="field">
+            <label for="p-maxloan">Maximum principal (wei)</label>
+            <div class="field-input"><input type="text" id="p-maxloan" name="maxLoanPrincipal" inputmode="numeric" autocomplete="off"><span class="field-unit">wei</span></div>
+          </div>
+          <div class="field">
+            <label for="p-mindeposit">Minimum supply (wei)</label>
+            <div class="field-input"><input type="text" id="p-mindeposit" name="minDeposit" inputmode="numeric" autocomplete="off"><span class="field-unit">wei</span></div>
+          </div>
+        </div>
+
+        <p class="field-note">Changing a parameter emits <code>ParamsUpdated</code> and takes effect for loans requested afterwards. Existing loans keep the rate and interest frozen at request time.</p>
+        <p class="form-error" data-error="params" role="alert" hidden></p>
+
+        <div class="admin-actions">
+          <button type="submit" class="btn btn-primary" id="params-submit">Save parameters</button>
+          <button type="button" class="btn btn-quiet" id="pause-toggle">Pause pool</button>
+          <button type="button" class="btn btn-quiet" id="claim-treasury">Claim treasury fees</button>
+          <button type="button" class="btn btn-quiet" id="treasury-set">Set treasury address</button>
+          <button type="button" class="btn btn-quiet" id="ownership-transfer">Transfer ownership</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ==================================================================== -->
+  <section class="panel panel-wide" id="panel-settings" aria-labelledby="settings-heading">
+    <header class="panel-head">
+      <h2 class="panel-title" id="settings-heading">Connection</h2>
+      <span class="panel-rule" aria-hidden="true"></span>
+      <span class="panel-meta" data-panel-meta="settings">—</span>
+    </header>
+    <div class="panel-body">
+      <form id="form-settings" class="form" novalidate>
+        <div class="field-grid">
+          <div class="field">
+            <label for="s-contract">Pool contract address</label>
+            <div class="field-input">
+              <input type="text" id="s-contract" name="contractAddress" autocomplete="off" spellcheck="false" placeholder="0x…">
+            </div>
+            <p class="field-hint">Empty means demo mode: run the book locally with no backend and no wallet.</p>
+          </div>
+          <div class="field">
+            <label for="s-api">Backend API base</label>
+            <div class="field-input">
+              <input type="text" id="s-api" name="apiBase" autocomplete="off" spellcheck="false" placeholder="/api">
+            </div>
+            <p class="field-hint">Flask default is http://127.0.0.1:5000/api when this file is opened directly.</p>
+          </div>
+        </div>
+        <div class="admin-actions">
+          <button type="submit" class="btn btn-primary">Save connection</button>
+          <button type="button" class="btn btn-quiet" id="settings-clear">Clear saved settings</button>
+          <button type="button" class="btn btn-quiet" id="copy-diagnostics">Copy diagnostics</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div class="footer-col">
+      <p class="footer-title">Contract</p>
+      <p class="footer-line"><span data-footer="contract">—</span></p>
+      <p class="footer-line"><span data-footer="network">—</span></p>
+    </div>
+    <div class="footer-col">
+      <p class="footer-title">Links</p>
+      <p class="footer-line"><a data-footer="explorer" href="#" rel="noopener noreferrer" target="_blank">Etherscan</a></p>
+      <p class="footer-line"><a data-footer="docs" href="README.md">Frontend notes</a></p>
+    </div>
+    <div class="footer-col">
+      <p class="footer-title">Build</p>
+      <p class="footer-line" data-footer="build">—</p>
+      <p class="footer-line footer-disclaimer">Testnet software for coursework. No private key, seed phrase or signature is ever stored by this page; every write is signed by your own wallet, and MetaMask is never asked for anything but a connection.</p>
+    </div>
+    <div class="footer-col">
+      <div class="audit audit-footer" id="audit-footer" hidden>
+        <p class="audit-title">Ledger check</p>
+        <p class="audit-body" data-audit="footer">—</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<noscript>
+  <p class="noscript">MicroLend needs JavaScript: it reads the pool contract and formats every amount in wei. Enable JavaScript and reload.</p>
+</noscript>
+
+<div id="modal-root" hidden></div>
+<div id="toasts" class="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<script src="js/config.js"></script>
+<script src="js/abi.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/api.js"></script>
+<script src="js/wallet.js"></script>
+<script src="js/contract.js"></script>
+<script src="js/demo.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
